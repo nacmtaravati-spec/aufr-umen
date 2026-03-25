@@ -1,0 +1,1034 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Diagramme lesen – Klasse Quiz</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Baloo+2:wght@700;800&family=Nunito:wght@400;600;700;800&display=swap');
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: 'Nunito', sans-serif;
+  background: #1a1a2e;
+  min-height: 100vh;
+  color: #1E293B;
+}
+
+/* ── TOP BAR ── */
+.topbar {
+  background: linear-gradient(90deg, #0f3460 0%, #16213e 100%);
+  padding: 10px 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 3px solid #e94560;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.topbar-title {
+  font-family: 'Baloo 2', cursive;
+  color: #fff;
+  font-size: 1.3rem;
+  letter-spacing: 1px;
+}
+.topbar-right { display: flex; align-items: center; gap: 10px; }
+.topbar-sub {
+  color: #a0aec0;
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+/* chapter tabs */
+.chapter-tabs {
+  display: flex;
+  gap: 6px;
+}
+.ch-tab {
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  font-weight: 800;
+  cursor: pointer;
+  border: 2px solid transparent;
+  transition: all .15s;
+  color: #94A3B8;
+  background: rgba(255,255,255,0.07);
+}
+.ch-tab.active { background: #e94560; color: white; border-color: #e94560; }
+.ch-tab:hover:not(.active) { border-color: #e94560; color: #e94560; }
+
+/* ── SCORES ── */
+.scorebar {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 8px;
+  padding: 10px 14px;
+  background: #16213e;
+}
+.score-tile {
+  border-radius: 12px;
+  padding: 10px 14px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  cursor: pointer;
+  border: 2px solid transparent;
+  transition: transform .15s, border-color .15s;
+  position: relative;
+}
+.score-tile.f { background: #1e3a5f; }
+.score-tile.m { background: #064e3b; }
+.score-tile.t { background: #78350f; }
+.score-tile.selected { border-color: #e94560; transform: scale(1.04); }
+.score-tile.selected::after {
+  content: '✋ Ich antworte!';
+  position: absolute; bottom: 3px; left: 50%; transform: translateX(-50%);
+  font-size: 0.6rem; color: #e94560; font-weight: 800; white-space: nowrap;
+}
+.tile-name { color: #e2e8f0; font-weight: 800; font-size: 0.8rem; }
+.tile-pts {
+  font-family: 'Baloo 2', cursive;
+  font-size: 2rem; line-height: 1;
+  color: #fff;
+}
+
+/* ── MAIN CARD ── */
+.card {
+  background: #fff;
+  border-radius: 18px;
+  margin: 12px 12px 20px;
+  overflow: hidden;
+  box-shadow: 0 8px 40px rgba(0,0,0,0.5);
+}
+
+/* question header */
+.q-header {
+  background: #0f3460;
+  padding: 12px 18px;
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+.q-num {
+  background: #e94560;
+  color: #fff;
+  font-family: 'Baloo 2', cursive;
+  font-size: 0.85rem;
+  padding: 3px 11px;
+  border-radius: 20px;
+  white-space: nowrap;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+.q-text {
+  color: #fff;
+  font-size: 1rem;
+  font-weight: 700;
+  line-height: 1.4;
+}
+
+/* ── PHASE BANNER ── */
+.phase-banner {
+  background: #FEF9C3;
+  border-bottom: 2px solid #FCD34D;
+  padding: 9px 18px;
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: #92400E;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* ── DIAGRAM ── */
+.diagram-wrap {
+  padding: 16px 18px 10px;
+  background: #f8fafc;
+  border-bottom: 2px solid #e2e8f0;
+}
+.diagram-title {
+  text-align: center;
+  font-weight: 800;
+  font-size: 1rem;
+  margin-bottom: 10px;
+  color: #1e293b;
+}
+.chart-container {
+  position: relative;
+  width: 100%;
+  height: 280px;
+}
+
+/* ── ANSWER SECTION ── */
+.answer-section { padding: 14px 18px; }
+
+/* MC buttons */
+.mc-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 9px;
+  margin-bottom: 12px;
+}
+.mc-btn {
+  background: #F1F5F9;
+  border: 2px solid #CBD5E1;
+  border-radius: 12px;
+  padding: 12px 14px;
+  font-family: 'Nunito', sans-serif;
+  font-size: 0.92rem;
+  font-weight: 700;
+  color: #1E293B;
+  cursor: pointer;
+  text-align: left;
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  transition: all .15s;
+  line-height: 1.3;
+}
+.mc-btn:hover:not(:disabled) { background: #E0E7FF; border-color: #818CF8; }
+.mc-btn.correct { background: #DCFCE7; border-color: #22C55E; color: #15803D; }
+.mc-btn.wrong   { background: #FEE2E2; border-color: #EF4444; color: #DC2626; }
+.mc-btn:disabled { cursor: default; }
+.mc-letter {
+  background: #6366F1;
+  color: white;
+  border-radius: 6px;
+  min-width: 24px; height: 24px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 0.8rem; flex-shrink: 0;
+  margin-top: 1px;
+}
+.mc-btn.correct .mc-letter { background: #22C55E; }
+.mc-btn.wrong   .mc-letter { background: #EF4444; }
+
+/* ── STIMMT / STIMMT NICHT table layout ── */
+.sn-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 12px;
+  font-size: 0.9rem;
+}
+.sn-table thead th {
+  background: #0f3460;
+  color: white;
+  padding: 8px 10px;
+  font-family: 'Baloo 2', cursive;
+  font-size: 0.85rem;
+  text-align: center;
+}
+.sn-table thead th:first-child { text-align: left; border-radius: 8px 0 0 0; }
+.sn-table thead th:last-child  { border-radius: 0 8px 0 0; }
+.sn-row td {
+  padding: 9px 10px;
+  border-bottom: 1px solid #E2E8F0;
+  vertical-align: middle;
+}
+.sn-row:last-child td { border-bottom: none; }
+.sn-row:nth-child(even) { background: #F8FAFC; }
+.sn-stmt { font-weight: 600; line-height: 1.4; }
+.sn-cell { text-align: center; width: 80px; }
+
+/* the radio-style toggle buttons inside the table */
+.sn-btn {
+  display: inline-block;
+  width: 32px; height: 32px;
+  border-radius: 8px;
+  border: 2px solid #CBD5E1;
+  background: white;
+  cursor: pointer;
+  font-size: 0.85rem;
+  font-weight: 800;
+  transition: all .15s;
+  line-height: 28px;
+  text-align: center;
+  user-select: none;
+}
+.sn-btn:hover { border-color: #6366F1; background: #EEF2FF; }
+.sn-btn.chosen-yes { background: #6366F1; border-color: #6366F1; color: white; }
+.sn-btn.chosen-no  { background: #6366F1; border-color: #6366F1; color: white; }
+.sn-btn.reveal-correct { background: #22C55E; border-color: #22C55E; color: white; }
+.sn-btn.reveal-wrong   { background: #EF4444; border-color: #EF4444; color: white; }
+.sn-btn.reveal-neutral { background: #F1F5F9; border-color: #CBD5E1; color: #94A3B8; }
+.sn-btn:disabled { cursor: default; }
+
+/* stmt-list (checkbox) */
+.stmt-list {
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+  margin-bottom: 14px;
+}
+.stmt-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 11px 14px;
+  border: 2px solid #E2E8F0;
+  border-radius: 12px;
+  background: #F8FAFC;
+  cursor: default;
+  transition: all .15s;
+  font-size: 0.92rem;
+  font-weight: 600;
+  line-height: 1.4;
+}
+.stmt-row.clickable { cursor: pointer; }
+.stmt-row.clickable:hover { background: #EEF2FF; border-color: #A5B4FC; }
+.stmt-row.selected  { background: #EEF2FF; border-color: #6366F1; }
+.stmt-row.correct   { background: #DCFCE7; border-color: #22C55E; }
+.stmt-row.wrong     { background: #FEE2E2; border-color: #EF4444; }
+.stmt-box {
+  width: 22px; height: 22px; min-width: 22px;
+  border: 2px solid #94A3B8;
+  border-radius: 5px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 0.85rem; margin-top: 1px;
+  transition: all .15s; background: white;
+}
+.stmt-row.selected .stmt-box { border-color: #6366F1; background: #6366F1; color: white; }
+.stmt-row.correct  .stmt-box { border-color: #22C55E; background: #22C55E; color: white; }
+.stmt-row.wrong    .stmt-box { border-color: #EF4444; background: #EF4444; color: white; }
+
+/* confirm button */
+.confirm-btn {
+  width: 100%;
+  padding: 13px;
+  background: linear-gradient(135deg, #6366F1, #8B5CF6);
+  color: white;
+  border: none;
+  border-radius: 13px;
+  font-family: 'Baloo 2', cursive;
+  font-size: 1.05rem;
+  cursor: pointer;
+  transition: all .15s;
+  box-shadow: 0 4px 14px rgba(99,102,241,.4);
+  margin-bottom: 6px;
+}
+.confirm-btn:hover { transform: translateY(-2px); }
+.confirm-btn:disabled { background: #CBD5E1; box-shadow: none; transform: none; cursor: default; }
+
+/* row-select buttons */
+.rowsel-btn {
+  width: 100%;
+  padding: 13px;
+  border: none;
+  border-radius: 13px;
+  font-family: 'Baloo 2', cursive;
+  font-size: 1.05rem;
+  cursor: pointer;
+  transition: all .15s;
+  margin-bottom: 6px;
+}
+.rowsel-btn.f { background: #2563EB; color: white; box-shadow: 0 4px 14px rgba(37,99,235,.4); }
+.rowsel-btn.m { background: #10B981; color: white; box-shadow: 0 4px 14px rgba(16,185,129,.4); }
+.rowsel-btn.t { background: #F59E0B; color: white; box-shadow: 0 4px 14px rgba(245,158,11,.4); }
+.rowsel-btn:hover { transform: translateY(-2px); }
+
+/* feedback */
+.feedback {
+  display: none;
+  padding: 11px 14px;
+  border-radius: 12px;
+  font-weight: 700;
+  font-size: 0.92rem;
+  margin-bottom: 10px;
+  line-height: 1.5;
+}
+.feedback.ok   { display: flex; background: #DCFCE7; color: #15803D; gap: 8px; align-items: flex-start; }
+.feedback.fail { display: flex; background: #FEE2E2; color: #DC2626; gap: 8px; align-items: flex-start; }
+
+/* next button */
+.next-btn {
+  display: none;
+  width: 100%;
+  padding: 13px;
+  background: #0f3460;
+  color: white;
+  border: none;
+  border-radius: 13px;
+  font-family: 'Baloo 2', cursive;
+  font-size: 1.05rem;
+  cursor: pointer;
+  transition: all .15s;
+}
+.next-btn.show { display: block; }
+.next-btn:hover { background: #1a4a80; }
+
+/* ── CHAPTER END SCREEN ── */
+#chapterEnd {
+  display: none;
+  background: #fff;
+  border-radius: 18px;
+  margin: 12px 12px 20px;
+  padding: 32px 24px;
+  text-align: center;
+  box-shadow: 0 8px 40px rgba(0,0,0,0.5);
+}
+#chapterEnd.show { display: block; }
+.ce-emoji { font-size: 3rem; margin-bottom: 8px; }
+.ce-title { font-family: 'Baloo 2', cursive; font-size: 1.7rem; color: #0f3460; margin-bottom: 6px; }
+.ce-sub   { color: #64748B; font-size: 0.95rem; margin-bottom: 20px; }
+.ce-next-btn {
+  padding: 14px 28px;
+  background: #e94560; color: white; border: none;
+  border-radius: 13px; font-family: 'Baloo 2', cursive; font-size: 1.05rem; cursor: pointer;
+  box-shadow: 0 4px 14px rgba(233,69,96,.4);
+  margin: 0 6px;
+}
+.ce-restart-btn {
+  padding: 14px 28px;
+  background: #0f3460; color: white; border: none;
+  border-radius: 13px; font-family: 'Baloo 2', cursive; font-size: 1.05rem; cursor: pointer;
+}
+
+/* ── WINNER ── */
+#winOverlay {
+  display: none;
+  position: fixed; inset: 0;
+  background: rgba(10,10,30,.85);
+  z-index: 100;
+  align-items: center; justify-content: center;
+}
+#winOverlay.show { display: flex; }
+.win-card {
+  background: white;
+  border-radius: 24px;
+  padding: 36px 32px;
+  max-width: 400px; width: 92%;
+  text-align: center;
+  animation: pop .4s cubic-bezier(.34,1.56,.64,1);
+}
+@keyframes pop { from { transform: scale(.4); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+.win-emoji { font-size: 3.5rem; margin-bottom: 8px; }
+.win-title { font-family: 'Baloo 2', cursive; font-size: 1.9rem; color: #0f3460; margin-bottom: 18px; }
+.win-row {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 11px 18px; border-radius: 12px; margin-bottom: 9px; font-weight: 800;
+}
+.win-row.f { background: #DBEAFE; color: #1D4ED8; }
+.win-row.m { background: #D1FAE5; color: #065F46; }
+.win-row.t { background: #FEF3C7; color: #92400E; }
+.win-pts { font-family: 'Baloo 2', cursive; font-size: 1.4rem; }
+.restart-btn {
+  margin-top: 18px;
+  padding: 13px 28px;
+  background: #e94560; color: white; border: none;
+  border-radius: 13px; font-family: 'Baloo 2', cursive; font-size: 1.05rem;
+  cursor: pointer;
+}
+
+/* confetti */
+.cf {
+  position: fixed; top: -10px; border-radius: 3px;
+  animation: fall linear forwards; pointer-events: none; z-index: 200;
+}
+@keyframes fall {
+  to { transform: translateY(105vh) translateX(var(--dx,0px)) rotate(700deg); opacity: 0; }
+}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="topbar-title">📊 Diagramme lesen</div>
+  <div class="topbar-sub" id="progText">Aufgabe 1 von 15</div>
+</div>
+
+<div class="scorebar">
+  <div class="score-tile f" id="tileF" onclick="pickRow('f')">
+    <div><div class="tile-name">🪟 Fensterreihe</div><div class="tile-pts" id="ptF">0</div></div>
+  </div>
+  <div class="score-tile m" id="tileM" onclick="pickRow('m')">
+    <div><div class="tile-name">⭐ Mittelreihe</div><div class="tile-pts" id="ptM">0</div></div>
+  </div>
+  <div class="score-tile t" id="tileT" onclick="pickRow('t')">
+    <div><div class="tile-name">🚪 Türreihe</div><div class="tile-pts" id="ptT">0</div></div>
+  </div>
+</div>
+
+<!-- QUESTION CARD -->
+<div class="card" id="qCard">
+  <div class="phase-banner" id="phaseBanner">
+    👀 <span><strong>Schritt 1:</strong> Lest alle Antwortmöglichkeiten! Dann wählt eine Reihe.</span>
+  </div>
+  <div class="q-header">
+    <div class="q-num" id="qNum">Aufgabe 1</div>
+    <div class="q-text" id="qText">…</div>
+  </div>
+  <div class="diagram-wrap">
+    <div class="diagram-title" id="diagramTitle"></div>
+    <div class="chart-container">
+      <canvas id="chart"></canvas>
+    </div>
+  </div>
+  <div class="answer-section">
+    <div id="answerArea"></div>
+    <div class="feedback" id="feedback"></div>
+    <button class="next-btn" id="nextBtn" onclick="advance()">Nächste Aufgabe →</button>
+  </div>
+</div>
+
+<!-- WINNER -->
+<div id="winOverlay">
+  <div class="win-card">
+    <div class="win-emoji">🏆</div>
+    <div class="win-title" id="winTitle">Gewinner!</div>
+    <div id="winRows"></div>
+    <button class="restart-btn" onclick="restart()">🔄 Nochmal spielen</button>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/chartjs-plugin-datalabels/2.2.0/chartjs-plugin-datalabels.min.js"></script>
+<script>
+Chart.register(ChartDataLabels);
+// ═══════════════════════════════════════════════════════════
+//  CHART HELPERS
+// ═══════════════════════════════════════════════════════════
+function makePie(canvasId, labels, data, colors, title) {
+  const ctx = document.getElementById(canvasId).getContext('2d');
+  return new Chart(ctx, {
+    type: 'pie',
+    data: {
+      labels,
+      datasets: [{ data, backgroundColor: colors, borderColor: '#fff', borderWidth: 3 }],
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: {
+        title: { display: !!title, text: title, font: { family: 'Nunito', size: 13, weight: 'bold' }, color: '#1e293b', padding: { bottom: 10 } },
+        legend: { position: 'right', labels: { font: { family: 'Nunito', size: 11 }, padding: 12, boxWidth: 18 } },
+        datalabels: {
+          color: '#fff',
+          font: { family: 'Nunito', size: 15, weight: '800' },
+          formatter: (value) => value,
+          textStrokeColor: 'rgba(0,0,0,0.35)',
+          textStrokeWidth: 3,
+        },
+      },
+    },
+  });
+}
+
+// ═══════════════════════════════════════════════════════════
+//  CHAPTER 1 – Lieblingsfilme (Säulendiagramm)
+// ═══════════════════════════════════════════════════════════
+const CH1 = {
+  title: 'Lieblingsfilme',
+  buildChart(canvasId) {
+    const ctx = document.getElementById(canvasId).getContext('2d');
+    return new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels: ['Ice Age', 'Star Wars', 'Harry Potter', 'Sonstige'],
+        datasets: [
+          { label: 'Klasse 5', data: [29, 5, 15, 10], backgroundColor: '#374151', borderColor: '#374151', borderWidth: 1, barPercentage: 0.8, categoryPercentage: 0.7 },
+          { label: 'Klasse 6', data: [14, 25, 15, 4],  backgroundColor: '#D1D5DB', borderColor: '#9CA3AF', borderWidth: 1, barPercentage: 0.8, categoryPercentage: 0.7 },
+        ],
+      },
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        plugins: {
+          legend: { position: 'right', labels: { font: { family: 'Nunito', size: 11 }, boxWidth: 16, padding: 10 } },
+          datalabels: { display: false },
+        },
+        scales: {
+          y: { beginAtZero: true, max: 30, ticks: { stepSize: 2, font: { family: 'Nunito', size: 10 } }, title: { display: true, text: 'Anzahl der Kinder', font: { family: 'Nunito', size: 11 } }, grid: { color: '#E5E7EB' } },
+          x: { grid: { display: false }, ticks: { font: { family: 'Nunito', size: 11 } } },
+        },
+      },
+    });
+  },
+  questions: [
+    {
+      type: 'single',
+      text: 'Welcher Film ist in Klasse 5 am beliebtesten?',
+      opts: ['Star Wars', 'Harry Potter', 'Ice Age', 'Sonstige'],
+      correct: 2,
+      explain: 'Ice Age hat in Klasse 5 die höchste Säule – 29 Kinder.',
+    },
+    {
+      type: 'single',
+      text: 'Welcher Film ist in Klasse 6 am beliebtesten?',
+      opts: ['Ice Age', 'Sonstige', 'Harry Potter', 'Star Wars'],
+      correct: 3,
+      explain: 'Star Wars hat in Klasse 6 die höchste Säule – 25 Kinder.',
+    },
+    {
+      type: 'single',
+      text: 'Welcher Film ist in Klasse 5 am wenigsten beliebt?',
+      opts: ['Harry Potter', 'Sonstige', 'Star Wars', 'Ice Age'],
+      correct: 2,
+      explain: 'Star Wars hat in Klasse 5 nur 5 Kinder – das ist der kleinste Wert.',
+    },
+    {
+      type: 'single',
+      text: 'Wie viele Kinder aus Klasse 6 mögen Star Wars?',
+      opts: ['5', '14', '29', '25'],
+      correct: 3,
+      explain: 'Die helle Säule bei Star Wars zeigt 25 Kinder aus Klasse 6.',
+    },
+    {
+      type: 'single',
+      text: 'Wie viele Kinder aus Klasse 5 mögen Ice Age?',
+      opts: ['14', '25', '29', '15'],
+      correct: 2,
+      explain: 'Die dunkle Säule bei Ice Age zeigt 29 Kinder aus Klasse 5.',
+    },
+    {
+      type: 'single',
+      text: 'Welche Klasse hat mehr Ice-Age-Fans?',
+      opts: ['Klasse 6 (25 Kinder)', 'Beide gleich viele', 'Klasse 5 (29 Kinder)', 'Klasse 6 (14 Kinder)'],
+      correct: 2,
+      explain: 'Klasse 5: 29 Kinder mögen Ice Age – mehr als Klasse 6 mit 14 Kindern.',
+    },
+  ],
+};
+
+// ═══════════════════════════════════════════════════════════
+//  CHAPTER 2 – Eintrittspreise Schwimmbad
+// ═══════════════════════════════════════════════════════════
+const CH2 = {
+  title: 'Eintrittspreise Schwimmbad',
+  buildChart(canvasId) {
+    const ctx = document.getElementById(canvasId).getContext('2d');
+    return new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels: ['1995', '2000', '2005', '2010', '2015'],
+        datasets: [
+          { label: 'Eintrittspreise Erwachsene', data: [3.00, 4.00, 4.50, 5.50, 7.00], backgroundColor: '#374151', borderColor: '#374151', borderWidth: 1, barPercentage: 0.8, categoryPercentage: 0.7 },
+          { label: 'Eintrittspreise Kinder',     data: [1.50, 2.00, 2.50, 3.00, 3.50], backgroundColor: '#D1D5DB', borderColor: '#9CA3AF', borderWidth: 1, barPercentage: 0.8, categoryPercentage: 0.7 },
+        ],
+      },
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        plugins: {
+          legend: { position: 'right', labels: { font: { family: 'Nunito', size: 10 }, boxWidth: 14, padding: 8 } },
+          datalabels: { display: false },
+        },
+        scales: {
+          y: { beginAtZero: true, max: 7, ticks: { stepSize: 1, font: { family: 'Nunito', size: 10 }, callback: v => v.toFixed(2) + ' €' }, title: { display: true, text: 'Preise in €', font: { family: 'Nunito', size: 11 } }, grid: { color: '#E5E7EB' } },
+          x: { grid: { display: false }, ticks: { font: { family: 'Nunito', size: 11 } } },
+        },
+      },
+    });
+  },
+  questions: [
+    {
+      type: 'single',
+      text: 'Was kostet der Erwachseneneintritt im Jahr 2015?',
+      opts: ['5,50 €', '4,50 €', '6,00 €', '7,00 €'],
+      correct: 3,
+      explain: 'Im Jahr 2015 zeigt die dunkle Säule 7,00 € für Erwachsene.',
+    },
+    {
+      type: 'single',
+      text: 'Was kostet der Kindereintritt im Jahr 2000?',
+      opts: ['1,50 €', '3,00 €', '2,00 €', '2,50 €'],
+      correct: 2,
+      explain: 'Im Jahr 2000 zeigt die helle Säule 2,00 € für Kinder.',
+    },
+    {
+      type: 'single',
+      text: 'Wie viel mehr zahlt eine erwachsene Person als ein Kind im Jahr 2010?',
+      opts: ['1,50 €', '2,00 €', '3,00 €', '2,50 €'],
+      correct: 3,
+      explain: '2010: Erwachsene 5,50 € − Kinder 3,00 € = 2,50 € mehr.',
+    },
+    {
+      type: 'single',
+      text: 'Eine Familie mit 2 Erwachsenen und 2 Kindern besucht 2000 das Schwimmbad. Was zahlen sie insgesamt?',
+      opts: ['10,00 €', '15,00 €', '12,00 €', '14,00 €'],
+      correct: 2,
+      explain: '2 × 4,00 € + 2 × 2,00 € = 8,00 € + 4,00 € = 12,00 €.',
+    },
+    {
+      type: 'single',
+      text: 'In welchem Jahr war der Kindereintritt am günstigsten?',
+      opts: ['2000', '2005', '2010', '1995'],
+      correct: 3,
+      explain: '1995 war der Kindereintritt am günstigsten – nur 1,50 €.',
+    },
+    {
+      type: 'single',
+      text: 'Um wie viel Euro ist der Erwachsenenpreis von 1995 bis 2015 gestiegen?',
+      opts: ['3,00 €', '5,00 €', '4,00 €', '4,50 €'],
+      correct: 2,
+      explain: '7,00 € − 3,00 € = 4,00 € Anstieg von 1995 bis 2015.',
+    },
+  ],
+};
+
+// ═══════════════════════════════════════════════════════════
+//  CHAPTER 3 – Kreisdiagramm: Lieblingstiere der Klasse 4
+// ═══════════════════════════════════════════════════════════
+const CH3 = {
+  title: 'Lieblingstiere der Klasse 4  (30 Kinder)',
+  buildChart(canvasId) {
+    return makePie(canvasId,
+      ['Hund', 'Katze', 'Vogel', 'Fisch', 'Sonstiges'],
+      [10, 8, 6, 4, 2],
+      ['#3B82F6','#F97316','#10B981','#F59E0B','#8B5CF6'],
+      'Lieblingstiere der Klasse 4  (30 Kinder)'
+    );
+  },
+  questions: [
+    {
+      type: 'single',
+      text: 'Welches Tier ist das beliebteste in der Klasse?',
+      opts: ['Katze', 'Vogel', 'Fisch', 'Hund'],
+      correct: 3,
+      explain: 'Hund hat das größte Stück – 10 Kinder mögen Hund am liebsten.',
+    },
+    {
+      type: 'single',
+      text: 'Welches Tier ist das unbeliebteste in der Klasse?',
+      opts: ['Fisch', 'Vogel', 'Sonstiges', 'Katze'],
+      correct: 2,
+      explain: 'Sonstiges hat das kleinste Stück – nur 2 Kinder.',
+    },
+    {
+      type: 'single',
+      text: 'Wie viele Kinder mögen einen Vogel?',
+      opts: ['4', '8', '6', '10'],
+      correct: 2,
+      explain: 'Das grüne Stück zeigt: 6 Kinder mögen einen Vogel.',
+    },
+    {
+      type: 'single',
+      text: 'Wie viele Kinder mögen eine Katze?',
+      opts: ['6', '10', '4', '8'],
+      correct: 3,
+      explain: 'Das orangene Stück zeigt: 8 Kinder mögen eine Katze.',
+    },
+    {
+      type: 'single',
+      text: 'Wie viele Kinder haben Katze und Vogel zusammen gewählt?',
+      opts: ['12', '16', '14', '10'],
+      correct: 2,
+      explain: 'Katze (8) + Vogel (6) = 14 Kinder.',
+    },
+    {
+      type: 'single',
+      text: 'Wie viele Kinder mehr mögen einen Hund als einen Fisch?',
+      opts: ['4', '8', '2', '6'],
+      correct: 3,
+      explain: 'Hund (10) − Fisch (4) = 6 Kinder mehr.',
+    },
+  ],
+};
+
+// ═══════════════════════════════════════════════════════════
+//  CHAPTER 4 – Kreisdiagramm: Sportarten in der Freizeit
+// ═══════════════════════════════════════════════════════════
+const CH4 = {
+  title: 'Sportarten in der Freizeit  (40 Kinder)',
+  buildChart(canvasId) {
+    return makePie(canvasId,
+      ['Fußball', 'Schwimmen', 'Fahrrad', 'Turnen', 'Sonstiges'],
+      [16, 10, 8, 4, 2],
+      ['#EF4444','#3B82F6','#F59E0B','#10B981','#A78BFA'],
+      'Sportarten in der Freizeit  (40 Kinder)'
+    );
+  },
+  questions: [
+    {
+      type: 'single',
+      text: 'Welche Sportart ist am beliebtesten?',
+      opts: ['Schwimmen', 'Turnen', 'Fahrrad', 'Fußball'],
+      correct: 3,
+      explain: 'Fußball hat das größte Stück – 16 Kinder.',
+    },
+    {
+      type: 'single',
+      text: 'Welche Sportart ist am wenigsten beliebt?',
+      opts: ['Fahrrad', 'Sonstiges', 'Turnen', 'Schwimmen'],
+      correct: 1,
+      explain: 'Sonstiges hat das kleinste Stück – nur 2 Kinder.',
+    },
+    {
+      type: 'single',
+      text: 'Wie viele Kinder fahren Fahrrad?',
+      opts: ['10', '4', '16', '8'],
+      correct: 3,
+      explain: 'Das gelbe Stück zeigt: 8 Kinder fahren Fahrrad.',
+    },
+    {
+      type: 'single',
+      text: 'Wie viele Kinder schwimmen?',
+      opts: ['8', '16', '10', '4'],
+      correct: 2,
+      explain: 'Das blaue Stück zeigt: 10 Kinder schwimmen.',
+    },
+    {
+      type: 'single',
+      text: 'Wie viele Kinder machen Schwimmen und Turnen zusammen?',
+      opts: ['12', '18', '16', '14'],
+      correct: 3,
+      explain: 'Schwimmen (10) + Turnen (4) = 14 Kinder.',
+    },
+    {
+      type: 'single',
+      text: 'Wie viele Kinder mehr spielen Fußball als fahren Fahrrad?',
+      opts: ['6', '10', '8', '4'],
+      correct: 2,
+      explain: 'Fußball (16) − Fahrrad (8) = 8 Kinder mehr.',
+    },
+  ],
+};
+
+// ═══════════════════════════════════════════════════════════
+//  CHAPTER 5 – Kreisdiagramm: Lieblingsessen der Klasse 3
+// ═══════════════════════════════════════════════════════════
+const CH5 = {
+  title: 'Lieblingsessen der Klasse 3  (24 Kinder)',
+  buildChart(canvasId) {
+    return makePie(canvasId,
+      ['Pizza', 'Nudeln', 'Reis', 'Suppe', 'Sonstiges'],
+      [9, 6, 4, 3, 2],
+      ['#F97316','#EF4444','#F59E0B','#3B82F6','#10B981'],
+      'Lieblingsessen der Klasse 3  (24 Kinder)'
+    );
+  },
+  questions: [
+    {
+      type: 'single',
+      text: 'Welches Essen ist das beliebteste?',
+      opts: ['Nudeln', 'Reis', 'Suppe', 'Pizza'],
+      correct: 3,
+      explain: 'Pizza hat das größte Stück – 9 Kinder mögen Pizza am liebsten.',
+    },
+    {
+      type: 'single',
+      text: 'Welches Essen ist das unbeliebteste?',
+      opts: ['Suppe', 'Reis', 'Sonstiges', 'Nudeln'],
+      correct: 2,
+      explain: 'Sonstiges hat das kleinste Stück – nur 2 Kinder.',
+    },
+    {
+      type: 'single',
+      text: 'Wie viele Kinder mögen Nudeln?',
+      opts: ['4', '9', '3', '6'],
+      correct: 3,
+      explain: 'Das rote Stück zeigt: 6 Kinder mögen Nudeln.',
+    },
+    {
+      type: 'single',
+      text: 'Wie viele Kinder mögen Suppe?',
+      opts: ['6', '2', '3', '4'],
+      correct: 2,
+      explain: 'Das blaue Stück zeigt: 3 Kinder mögen Suppe.',
+    },
+    {
+      type: 'single',
+      text: 'Wie viele Kinder haben Pizza und Nudeln zusammen gewählt?',
+      opts: ['13', '12', '16', '15'],
+      correct: 3,
+      explain: 'Pizza (9) + Nudeln (6) = 15 Kinder.',
+    },
+    {
+      type: 'single',
+      text: 'Wie viele Kinder mehr mögen Pizza als Suppe?',
+      opts: ['4', '3', '6', '5'],
+      correct: 2,
+      explain: 'Pizza (9) − Suppe (3) = 6 Kinder mehr.',
+    },
+  ],
+};
+
+// ═══════════════════════════════════════════════════════════
+//  FLAT QUESTION LIST
+// ═══════════════════════════════════════════════════════════
+const ALL_Q = [
+  ...CH1.questions.map(q => ({ ...q, chartDef: CH1 })),
+  ...CH2.questions.map(q => ({ ...q, chartDef: CH2 })),
+  ...CH3.questions.map(q => ({ ...q, chartDef: CH3 })),
+];
+const TOTAL = ALL_Q.length;
+
+// ═══════════════════════════════════════════════════════════
+//  STATE
+// ═══════════════════════════════════════════════════════════
+let s = {
+  idx: 0,
+  pts: { f: 0, m: 0, t: 0 },
+  row: null,
+  answered: false,
+  chart: null,
+  sel: new Set(),
+};
+
+// ═══════════════════════════════════════════════════════════
+//  CHART
+// ═══════════════════════════════════════════════════════════
+function buildChart() {
+  if (s.chart) { try { s.chart.destroy(); } catch(e){} s.chart = null; }
+  const wrap = document.querySelector('.chart-container');
+  wrap.innerHTML = '<canvas id="chart"></canvas>';
+  const q = ALL_Q[s.idx];
+  document.getElementById('diagramTitle').textContent = q.chartDef.title;
+  s.chart = q.chartDef.buildChart('chart');
+}
+
+// ═══════════════════════════════════════════════════════════
+//  RENDER QUESTION
+// ═══════════════════════════════════════════════════════════
+function render() {
+  const q = ALL_Q[s.idx];
+  s.row = null; s.answered = false; s.sel = new Set();
+
+  document.getElementById('progText').textContent = `Aufgabe ${s.idx + 1} von ${TOTAL}`;
+  document.getElementById('qNum').textContent     = `Aufgabe ${s.idx + 1}`;
+  document.getElementById('qText').textContent    = q.text;
+  document.getElementById('phaseBanner').innerHTML =
+    '👀 <span><strong>Schritt 1:</strong> Lest alle Antwortmöglichkeiten! Dann wählt eine Reihe aus.</span>';
+  document.getElementById('phaseBanner').style.display = 'flex';
+  document.getElementById('feedback').className   = 'feedback';
+  document.getElementById('nextBtn').className    = 'next-btn';
+  ['f','m','t'].forEach(r => tile(r).classList.remove('selected'));
+
+  buildChart();
+  buildAnswers(q, false);
+}
+
+function tile(r) { return document.getElementById('tile' + r.toUpperCase()); }
+
+// ═══════════════════════════════════════════════════════════
+//  BUILD ANSWERS
+// ═══════════════════════════════════════════════════════════
+function buildAnswers(q, active) {
+  const area = document.getElementById('answerArea');
+  area.innerHTML = '';
+
+  // All questions are now 'single' type
+  const list = document.createElement('div');
+  list.className = 'stmt-list';
+  q.opts.forEach((o, i) => {
+    const row = document.createElement('div');
+    row.className = 'stmt-row' + (active ? ' clickable' : '');
+    row.innerHTML = `<span class="stmt-box" style="color:transparent">●</span><span><strong>${['A)','B)','C)','D)'][i]}</strong> ${o}</span>`;
+    if (active) row.onclick = () => handleSingle(i);
+    list.appendChild(row);
+  });
+  area.appendChild(list);
+
+  // row-select buttons only in phase 1
+  if (!active) {
+    const names = { f: '🪟 Fensterreihe antwortet', m: '⭐ Mittelreihe antwortet', t: '🚪 Türreihe antwortet' };
+    ['f','m','t'].forEach(r => {
+      const btn = document.createElement('button');
+      btn.className = `rowsel-btn ${r}`;
+      btn.textContent = names[r];
+      btn.onclick = () => pickRow(r);
+      area.appendChild(btn);
+    });
+  }
+}
+
+// ═══════════════════════════════════════════════════════════
+//  ROW PICK
+// ═══════════════════════════════════════════════════════════
+function pickRow(r) {
+  if (s.answered) return;
+  s.row = r;
+  ['f','m','t'].forEach(x => tile(x).classList.toggle('selected', x === r));
+  const names = { f: 'Fensterreihe', m: 'Mittelreihe', t: 'Türreihe' };
+  document.getElementById('phaseBanner').innerHTML =
+    `✋ <span><strong>Schritt 2:</strong> ${names[r]} ist dran – jetzt antworten!</span>`;
+  buildAnswers(ALL_Q[s.idx], true);
+}
+
+// ═══════════════════════════════════════════════════════════
+//  HANDLE SINGLE
+// ═══════════════════════════════════════════════════════════
+function handleSingle(chosen) {
+  if (s.answered) return;
+  s.answered = true;
+  const q = ALL_Q[s.idx];
+  const rows = document.querySelectorAll('.stmt-row');
+  rows.forEach(r => r.classList.remove('clickable'));
+  rows[chosen].classList.add(chosen === q.correct ? 'correct' : 'wrong');
+  rows[chosen].querySelector('.stmt-box').style.color = 'white';
+  if (chosen !== q.correct) {
+    rows[q.correct].classList.add('correct');
+    rows[q.correct].querySelector('.stmt-box').style.color = 'white';
+  }
+  if (chosen === q.correct) { addPt(s.row); showFB(true, q.explain); }
+  else { ['f','m','t'].filter(r => r !== s.row).forEach(r => addPt(r)); showFB(false, q.explain); }
+  document.getElementById('nextBtn').className = 'next-btn show';
+}
+
+// ═══════════════════════════════════════════════════════════
+//  ADVANCE  — just go to next question, no chapter screen
+// ═══════════════════════════════════════════════════════════
+function advance() {
+  s.idx++;
+  if (s.idx >= TOTAL) { showWinner(); return; }
+  render();
+}
+
+// ═══════════════════════════════════════════════════════════
+//  WINNER
+// ═══════════════════════════════════════════════════════════
+function showWinner() {
+  if (s.chart) { try { s.chart.destroy(); } catch(e){} s.chart = null; }
+  document.getElementById('qCard').style.display = 'none';
+  spawnConfetti();
+  const rows = [
+    { r: 'f', name: '🪟 Fensterreihe', pts: s.pts.f },
+    { r: 'm', name: '⭐ Mittelreihe',  pts: s.pts.m },
+    { r: 't', name: '🚪 Türreihe',     pts: s.pts.t },
+  ].sort((a,b) => b.pts - a.pts);
+  const medals = ['🥇','🥈','🥉'];
+  document.getElementById('winTitle').textContent =
+    rows[0].pts > rows[1].pts ? rows[0].name + ' gewinnt!' : '🤝 Unentschieden!';
+  document.getElementById('winRows').innerHTML =
+    rows.map((x,i) => `<div class="win-row ${x.r}">${medals[i]} ${x.name}<span class="win-pts">${x.pts} Pkt</span></div>`).join('');
+  document.getElementById('winOverlay').className = 'show';
+}
+
+// ═══════════════════════════════════════════════════════════
+//  HELPERS
+// ═══════════════════════════════════════════════════════════
+function addPt(r) {
+  s.pts[r]++;
+  const el = document.getElementById('pt' + r.toUpperCase());
+  el.textContent = s.pts[r];
+  el.animate([{transform:'scale(1.6)'},{transform:'scale(1)'}], {duration:300});
+}
+
+function showFB(ok, txt) {
+  const fb = document.getElementById('feedback');
+  fb.className = 'feedback ' + (ok ? 'ok' : 'fail');
+  fb.innerHTML = (ok ? '✅ ' : '❌ ') + '<span>' +
+    (ok ? 'Richtig! +1 Punkt! ' : 'Falsch! Die anderen Reihen bekommen je +1 Punkt.<br>') +
+    '<strong>' + txt + '</strong></span>';
+}
+
+function spawnConfetti() {
+  const cols = ['#e94560','#0f3460','#6366F1','#10B981','#F59E0B','#3B82F6'];
+  for (let i = 0; i < 90; i++) {
+    const el = document.createElement('div');
+    el.className = 'cf';
+    el.style.cssText = `left:${Math.random()*100}vw;background:${cols[~~(Math.random()*cols.length)]};width:${6+Math.random()*8}px;height:${6+Math.random()*8}px;border-radius:${Math.random()>.5?'50%':'2px'};--dx:${(Math.random()-.5)*220}px;animation-duration:${1.4+Math.random()*2}s;animation-delay:${Math.random()*.7}s`;
+    document.body.appendChild(el);
+    setTimeout(() => el.remove(), 4000);
+  }
+}
+
+function restart() {
+  s = { idx: 0, pts: { f: 0, m: 0, t: 0 }, row: null, answered: false, chart: null, sel: new Set() };
+  ['f','m','t'].forEach(r => document.getElementById('pt' + r.toUpperCase()).textContent = '0');
+  document.getElementById('winOverlay').className = '';
+  document.getElementById('qCard').style.display = '';
+  render();
+}
+
+// INIT
+render();
+</script>
+</body>
+</html>
