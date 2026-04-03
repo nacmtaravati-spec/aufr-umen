@@ -1,0 +1,762 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<title>ClassScreen – Grundschule Boehlitz-Ehrenberg</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Baloo+2:wght@400;600;700;800&display=swap');
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Nunito',sans-serif;background:#eef2ff;color:#1e2a4a;overflow:hidden;height:100vh;}
+/* TOOLBAR */
+#tb{position:fixed;top:0;left:0;right:0;height:56px;background:#fff;border-bottom:2px solid #dde3ff;box-shadow:0 2px 12px rgba(79,126,248,.1);display:flex;align-items:center;gap:2px;padding:0 10px;z-index:1000;overflow-x:auto;}
+#tb::-webkit-scrollbar{display:none;}
+.logo{font-family:'Baloo 2',sans-serif;font-size:17px;font-weight:800;color:#4f7ef8;margin-right:6px;white-space:nowrap;flex-shrink:0;}
+.sep{width:1px;height:32px;background:#dde3ff;margin:0 4px;flex-shrink:0;}
+.tbtn{display:flex;flex-direction:column;align-items:center;gap:1px;padding:4px 9px;border-radius:9px;border:none;background:transparent;color:#8892b0;cursor:pointer;font-family:'Nunito',sans-serif;font-size:10px;font-weight:800;transition:all .15s;white-space:nowrap;flex-shrink:0;}
+.tbtn:hover{background:#eef2ff;color:#4f7ef8;}
+.tbtn .i{font-size:17px;}
+.bgwrap{margin-left:auto;display:flex;align-items:center;gap:5px;flex-shrink:0;}
+.bgwrap small{font-size:10px;color:#8892b0;font-weight:700;}
+.bgdot{width:22px;height:22px;border-radius:50%;cursor:pointer;border:2px solid transparent;transition:border-color .2s;flex-shrink:0;}
+.bgdot.on{border-color:#4f7ef8;}
+/* BOARD */
+#board{position:fixed;inset:56px 0 0 0;z-index:1;}
+/* WIDGET */
+.wgt{position:absolute;background:#fff;border:1.5px solid #dde3ff;border-radius:16px;box-shadow:0 4px 20px rgba(79,126,248,.1);min-width:160px;min-height:100px;display:flex;flex-direction:column;overflow:hidden;}
+.wh{display:flex;align-items:center;gap:7px;padding:9px 12px;cursor:grab;background:#f8f9ff;border-bottom:1.5px solid #dde3ff;flex-shrink:0;}
+.wh:active{cursor:grabbing;}
+.wt{font-size:11px;font-weight:900;letter-spacing:.6px;text-transform:uppercase;color:#8892b0;flex:1;}
+.wcl{width:20px;height:20px;border-radius:50%;background:transparent;border:none;color:#8892b0;font-size:13px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .15s;}
+.wcl:hover{background:#ef4444;color:#fff;}
+.wb{flex:1;padding:14px;overflow-y:auto;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:0;}
+.rzh{position:absolute;bottom:0;right:0;width:18px;height:18px;cursor:se-resize;display:flex;align-items:flex-end;justify-content:flex-end;padding:3px;}
+.rzh::after{content:'';width:7px;height:7px;border-right:2px solid #dde3ff;border-bottom:2px solid #dde3ff;border-radius:1px;}
+/* BUTTONS */
+.btn{padding:8px 14px;border-radius:10px;border:none;font-family:'Nunito',sans-serif;font-size:13px;font-weight:800;cursor:pointer;transition:all .15s;}
+.btn:hover{filter:brightness(1.08);}
+.bg{background:#dcfce7;color:#15803d;} .by{background:#fef3c7;color:#b45309;} .bm{background:#f1f5f9;color:#64748b;border:1.5px solid #dde3ff;} .ba{background:#4f7ef8;color:#fff;} .br{background:#fee2e2;color:#dc2626;}
+/* NOISE */
+@keyframes shake{0%,100%{transform:translateX(0) rotate(0);}25%{transform:translateX(-7px) rotate(-6deg);}75%{transform:translateX(7px) rotate(6deg);}}
+.nface{font-size:80px;line-height:1;text-align:center;transition:filter .3s;}
+.nface.shk{animation:shake .18s infinite;}
+/* TRAFFIC LIGHT */
+.tlbox{background:#111;border-radius:20px;padding:14px 18px;display:flex;flex-direction:column;gap:10px;border:3px solid #2a2a2a;box-shadow:inset 0 3px 10px rgba(0,0,0,.6);}
+.tlb{width:64px;height:64px;border-radius:50%;cursor:pointer;transition:all .35s;border:3px solid rgba(255,255,255,.06);}
+/* CLOCK */
+.clkbig{font-family:'Baloo 2',sans-serif;font-size:48px;font-weight:800;letter-spacing:2px;text-align:center;color:#4f7ef8;}
+/* TEXT */
+.txttb{display:flex;align-items:center;gap:5px;padding:6px 10px;border-bottom:1.5px solid #dde3ff;background:#f8f9ff;flex-wrap:wrap;flex-shrink:0;}
+.txttb button{padding:3px 8px;border-radius:6px;border:1.5px solid #dde3ff;background:#fff;cursor:pointer;font-size:12px;font-weight:700;color:#1e2a4a;transition:all .15s;font-family:'Nunito',sans-serif;}
+.txttb button:hover{background:#4f7ef8;color:#fff;border-color:#4f7ef8;}
+.txtar{flex:1;width:100%;padding:12px 14px;border:none;outline:none;background:#fff;color:#1e2a4a;font-family:'Nunito',sans-serif;font-size:18px;font-weight:600;line-height:1.6;resize:none;min-height:80px;cursor:text;}
+/* SETTINGS MODAL */
+.modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:5000;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(4px);}
+.modal{background:#fff;border-radius:20px;padding:24px;width:380px;max-width:96vw;max-height:88vh;overflow-y:auto;box-shadow:0 16px 48px rgba(0,0,0,.2);}
+.modal h2{font-family:'Baloo 2',sans-serif;font-size:20px;font-weight:800;color:#1e2a4a;margin-bottom:16px;}
+.mrow{display:flex;align-items:center;gap:10px;margin-bottom:10px;}
+.mrow label{font-size:12px;font-weight:800;color:#8892b0;white-space:nowrap;min-width:120px;}
+.mrow input[type=text]{flex:1;padding:7px 10px;border-radius:9px;border:1.5px solid #dde3ff;font-family:'Nunito',sans-serif;font-size:13px;font-weight:700;color:#1e2a4a;outline:none;}
+.mrow input[type=text]:focus{border-color:#4f7ef8;}
+.mrow input[type=number]{width:70px;padding:7px 8px;border-radius:9px;border:1.5px solid #dde3ff;font-family:'Baloo 2',sans-serif;font-size:16px;font-weight:800;color:#1e2a4a;text-align:center;outline:none;}
+.mdot{width:14px;height:14px;border-radius:50%;flex-shrink:0;}
+.msep{height:1px;background:#dde3ff;margin:12px 0;}
+.mtitle{font-size:11px;font-weight:900;text-transform:uppercase;letter-spacing:.6px;color:#8892b0;margin-bottom:8px;}
+/* RANGE */
+input[type=range]{accent-color:#4f7ef8;}
+input[type=number]{background:#f8f9ff;color:#1e2a4a;border:1.5px solid #dde3ff;border-radius:8px;padding:4px 6px;font-family:'Nunito',sans-serif;outline:none;}
+textarea.listarea{width:100%;height:78px;padding:8px;border-radius:10px;border:1.5px solid #dde3ff;background:#f8f9ff;color:#1e2a4a;font-family:'Nunito',sans-serif;font-size:12px;resize:none;outline:none;}
+/* TOAST */
+#toast{position:fixed;bottom:18px;left:50%;transform:translateX(-50%) translateY(70px);background:#1e2a4a;color:#fff;padding:10px 22px;border-radius:30px;font-weight:800;font-size:13px;box-shadow:0 4px 20px rgba(0,0,0,.2);z-index:9000;transition:transform .3s;pointer-events:none;}
+#toast.on{transform:translateX(-50%) translateY(0);}
+</style>
+</head>
+<body>
+<div id="tb">
+  <div class="logo">📺 ClassScreen</div>
+  <div class="sep"></div>
+  <button class="tbtn" onclick="add('noise')">   <span class="i">🎤</span>Lautstärke</button>
+  <button class="tbtn" onclick="add('traffic')"> <span class="i">🚦</span>Ampel</button>
+  <button class="tbtn" onclick="add('timer')">   <span class="i">⏱️</span>Timer</button>
+  <button class="tbtn" onclick="add('clock')">   <span class="i">🕐</span>Uhr</button>
+  <button class="tbtn" onclick="add('names')">   <span class="i">👤</span>Namen</button>
+  <button class="tbtn" onclick="add('symbols')"> <span class="i">🤫</span>Symbole</button>
+  <button class="tbtn" onclick="add('text')">    <span class="i">📝</span>Text</button>
+  <button class="tbtn" onclick="add('stopwatch')"><span class="i">⏱</span>Stoppuhr</button>
+  <button class="tbtn" onclick="add('dice')">    <span class="i">🎲</span>Würfel</button>
+  <div class="sep"></div>
+  <div class="bgwrap">
+    <small>Hintergrund:</small>
+    <div class="bgdot on"  style="background:#eef2ff" onclick="setBg(this,'#eef2ff')" title="Hell-Blau"></div>
+    <div class="bgdot"     style="background:#fffbeb" onclick="setBg(this,'#fffbeb')" title="Warm"></div>
+    <div class="bgdot"     style="background:#f0fdf4" onclick="setBg(this,'#f0fdf4')" title="Grün"></div>
+    <div class="bgdot"     style="background:#fdf4ff" onclick="setBg(this,'#fdf4ff')" title="Lila"></div>
+    <div class="bgdot"     style="background:#1a1f2e;outline:1px solid #555;outline-offset:1px;" onclick="setBg(this,'#1a1f2e')" title="Dunkel"></div>
+  </div>
+</div>
+<div id="board"></div>
+<div id="toast"></div>
+
+<script>
+// ═══════════════════════════════════════════
+// GLOBALS
+// ═══════════════════════════════════════════
+let wN=0, zN=10, drag=null, rsz=null;
+const S={};
+
+document.addEventListener('mousemove',e=>{
+  if(drag){
+    const el=document.getElementById(drag.id);if(!el)return;
+    let nx=e.clientX-drag.ox, ny=e.clientY-drag.oy;
+    nx=Math.max(0,Math.min(nx,innerWidth-el.offsetWidth));
+    ny=Math.max(56,Math.min(ny,innerHeight-el.offsetHeight));
+    el.style.left=nx+'px'; el.style.top=ny+'px';
+  }
+  if(rsz){
+    const el=document.getElementById(rsz.id);if(!el)return;
+    const r=el.getBoundingClientRect();
+    el.style.width=Math.max(170,e.clientX-r.left)+'px';
+    el.style.height=Math.max(110,e.clientY-r.top)+'px';
+  }
+});
+document.addEventListener('mouseup',()=>{drag=null;rsz=null;});
+function startDrag(e,id){if(e.target.closest('.wcl')||e.target.closest('button')||e.target.closest('input'))return;e.preventDefault();const r=document.getElementById(id).getBoundingClientRect();drag={id,ox:e.clientX-r.left,oy:e.clientY-r.top};document.getElementById(id).style.zIndex=++zN;}
+function startRsz(e,id){e.preventDefault();e.stopPropagation();rsz={id};}
+
+// ═══════════════════════════════════════════
+// WIDGET FACTORY
+// ═══════════════════════════════════════════
+const CFG={
+  noise:    {t:'Lautstärke',    ic:'🎤',w:255,h:355},
+  traffic:  {t:'Ampel',         ic:'🚦',w:210,h:340},
+  timer:    {t:'Timer',         ic:'⏱️',w:222,h:295},
+  clock:    {t:'Uhr',           ic:'🕐',w:232,h:148},
+  names:    {t:'Zufallsname',   ic:'👤',w:242,h:280},
+  symbols:  {t:'Arbeitssymbole',ic:'🤫',w:268,h:242},
+  text:     {t:'Text',          ic:'📝',w:302,h:242},
+  stopwatch:{t:'Stoppuhr',      ic:'⏱', w:218,h:168},
+  dice:     {t:'Würfel',        ic:'🎲',w:198,h:218},
+};
+
+function add(type){
+  wN++; const id='w'+wN; const c=CFG[type];
+  const x=80+(wN%7)*24, y=80+(wN%5)*20;
+  const el=document.createElement('div');
+  el.className='wgt'; el.id=id; el.dataset.type=type;
+  el.style.cssText=`left:${x}px;top:${y}px;width:${c.w}px;height:${c.h}px;z-index:${++zN};`;
+  const hdr=`<div class="wh" onmousedown="startDrag(event,'${id}')"><span>${c.ic}</span><span class="wt">${c.t}</span><button class="wcl" onclick="rem('${id}')">✕</button></div>`;
+  const rzh=`<div class="rzh" onmousedown="startRsz(event,'${id}')"></div>`;
+  if(type==='text'){
+    el.innerHTML=hdr+buildTxtTb(id)+`<textarea class="txtar" id="${id}-ta" placeholder="Aufgabe, Hausaufgaben, Infos..."></textarea>`+rzh;
+  } else {
+    el.innerHTML=hdr+`<div class="wb" id="${id}-b">${buildBody(type,id)}</div>`+rzh;
+  }
+  document.getElementById('board').appendChild(el);
+  initW(type,id);
+  toast(c.ic+' '+c.t+' hinzugefügt');
+}
+
+function rem(id){
+  const el=document.getElementById(id);if(!el)return;
+  const s=S[id];
+  if(s){
+    if(s.interval)clearInterval(s.interval);
+    if(s.animId)cancelAnimationFrame(s.animId);
+    if(s.stream)s.stream.getTracks().forEach(t=>{try{t.stop();}catch(e){}});
+    if(s.actx){try{s.actx.close();}catch(e){}}
+    if(s.tlInterval)clearInterval(s.tlInterval);
+  }
+  delete S[id]; el.remove();
+}
+
+// ═══════════════════════════════════════════
+// BODY BUILDERS
+// ═══════════════════════════════════════════
+function buildBody(type,id){
+
+  // ── NOISE ──
+  if(type==='noise') return `
+    <div class="nface" id="${id}-f">😊</div>
+    <div style="width:100%;height:18px;background:#eef2ff;border-radius:9px;overflow:hidden;margin:10px 0 4px;border:1.5px solid #dde3ff;">
+      <div id="${id}-b" style="height:100%;width:0%;background:#22c55e;border-radius:9px;transition:width .08s,background .2s;"></div>
+    </div>
+    <div id="${id}-l" style="font-size:12px;color:#8892b0;font-weight:800;margin-bottom:10px;text-align:center;">Mikrofon starten ↓</div>
+    <button id="${id}-mb" class="btn ba" style="width:100%;" onclick="micToggle('${id}')">🎤 Mikrofon starten</button>
+    <div style="width:100%;margin-top:12px;display:flex;flex-direction:column;gap:8px;">
+      <div style="display:flex;align-items:center;gap:8px;">
+        <span style="font-size:10px;color:#8892b0;font-weight:700;white-space:nowrap;min-width:84px;">🎚 Empfindlichkeit</span>
+        <input type="range" id="${id}-sv" min="1" max="10" value="5" step="0.5" style="flex:1;" oninput="document.getElementById('${id}-svv').textContent=parseFloat(this.value).toFixed(1)">
+        <span id="${id}-svv" style="font-size:10px;color:#4f7ef8;font-weight:800;min-width:22px;">5.0</span>
+      </div>
+      <div style="display:flex;align-items:center;gap:8px;">
+        <span style="font-size:10px;color:#8892b0;font-weight:700;white-space:nowrap;min-width:84px;">🔴 Max-Grenze</span>
+        <input type="range" id="${id}-mv" min="3" max="60" value="18" style="flex:1;" oninput="document.getElementById('${id}-mvv').textContent=this.value">
+        <span id="${id}-mvv" style="font-size:10px;color:#ef4444;font-weight:800;min-width:22px;">18</span>
+      </div>
+    </div>`;
+
+  // ── TRAFFIC LIGHT ──
+  // Die Ampel zeigt NUR die Ampel + Phasenname (für Kinder sichtbar)
+  // Der Lehrer-Einstellungs-Button öffnet ein Modal
+  if(type==='traffic') return `
+    <div style="display:flex;flex-direction:column;align-items:center;width:100%;gap:10px;">
+      <div class="tlbox">
+        <div id="${id}-R" class="tlb" style="background:#ef4444;box-shadow:0 0 28px #ef4444,0 0 56px rgba(239,68,68,.5);"></div>
+        <div id="${id}-Y" class="tlb" style="background:#3a2e10;"></div>
+        <div id="${id}-G" class="tlb" style="background:#0f3a10;"></div>
+      </div>
+      <div id="${id}-pname" style="font-family:'Baloo 2',sans-serif;font-size:16px;font-weight:800;color:#1e2a4a;text-align:center;">Arbeitsphase</div>
+      <div id="${id}-countdown" style="font-family:'Baloo 2',sans-serif;font-size:28px;font-weight:800;color:#4f7ef8;min-height:36px;text-align:center;">—</div>
+      <div style="display:flex;gap:6px;width:100%;">
+        <button id="${id}-startbtn" class="btn bg" style="flex:1;font-size:12px;" onclick="tlStart('${id}')">▶ Start</button>
+        <button class="btn bm" style="flex:1;font-size:12px;" onclick="tlReset('${id}')">↺ Reset</button>
+        <button class="btn ba" style="flex:1;font-size:12px;" onclick="tlOpenSettings('${id}')">⚙️ Einstellen</button>
+      </div>
+    </div>`;
+
+  // ── TIMER ──
+  if(type==='timer') return `
+    <div style="position:relative;width:128px;height:128px;margin:0 auto 10px;">
+      <svg width="128" height="128" viewBox="0 0 128 128" style="transform:rotate(-90deg);">
+        <circle cx="64" cy="64" r="56" fill="none" stroke="#eef2ff" stroke-width="10"/>
+        <circle id="${id}-rg" cx="64" cy="64" r="56" fill="none" stroke="#4f7ef8" stroke-width="10" stroke-linecap="round" stroke-dasharray="352" stroke-dashoffset="0" style="transition:stroke-dashoffset .5s,stroke .4s;"/>
+      </svg>
+      <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;">
+        <span id="${id}-d" style="font-family:'Baloo 2',sans-serif;font-size:26px;font-weight:800;color:#1e2a4a;">05:00</span>
+      </div>
+    </div>
+    <div style="display:flex;gap:6px;align-items:center;">
+      <input type="number" id="${id}-m" value="5" min="0" max="99" style="width:52px;text-align:center;font-family:'Baloo 2',sans-serif;font-size:20px;font-weight:800;">
+      <span style="font-size:22px;font-weight:800;color:#8892b0;">:</span>
+      <input type="number" id="${id}-s" value="0" min="0" max="59" style="width:52px;text-align:center;font-family:'Baloo 2',sans-serif;font-size:20px;font-weight:800;">
+    </div>
+    <div style="display:flex;gap:6px;margin-top:8px;width:100%;">
+      <button id="${id}-tb" class="btn bg" style="flex:1;" onclick="timerToggle('${id}')">▶ Start</button>
+      <button class="btn bm" style="flex:1;" onclick="timerReset('${id}')">↺ Reset</button>
+    </div>`;
+
+  if(type==='clock') return `<div id="${id}-t" class="clkbig">00:00:00</div><div id="${id}-d" style="font-size:12px;color:#8892b0;font-weight:700;text-align:center;margin-top:5px;">Datum</div>`;
+
+  if(type==='names') return `
+    <div id="${id}-r" style="font-family:'Baloo 2',sans-serif;font-size:30px;font-weight:800;color:#4f7ef8;min-height:44px;text-align:center;margin-bottom:8px;">—</div>
+    <textarea class="listarea" id="${id}-nl" placeholder="Namen eingeben&#10;(ein Name pro Zeile)"></textarea>
+    <button class="btn ba" style="width:100%;margin-top:8px;" onclick="pickName('${id}')">🎲 Zufälliger Name</button>`;
+
+  if(type==='symbols') return `
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;width:100%;">
+      ${[['🤫','Stille'],['🗣️','Flüstern'],['👥','Nachbar fragen'],['🤝','Zusammenarbeiten']].map((s,i)=>`
+      <button id="${id}-sy${i}" onclick="symSet('${id}',${i})" style="display:flex;flex-direction:column;align-items:center;gap:4px;padding:12px 6px;border-radius:12px;border:2px solid #dde3ff;cursor:pointer;background:#f8f9ff;color:#8892b0;font-family:'Nunito',sans-serif;font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.5px;transition:all .2s;">
+        <span style="font-size:26px;">${s[0]}</span>${s[1]}
+      </button>`).join('')}
+    </div>`;
+
+  if(type==='stopwatch') return `
+    <div id="${id}-sw" style="font-family:'Baloo 2',sans-serif;font-size:36px;font-weight:800;color:#4f7ef8;letter-spacing:2px;">00:00:00</div>
+    <div style="display:flex;gap:6px;margin-top:10px;width:100%;">
+      <button id="${id}-swb" class="btn bg" style="flex:1;" onclick="swToggle('${id}')">▶ Start</button>
+      <button class="btn bm" style="flex:1;" onclick="swReset('${id}')">↺ Reset</button>
+    </div>`;
+
+  if(type==='dice') return `
+    <div id="${id}-df" style="font-size:76px;cursor:pointer;text-align:center;" onclick="rollDice('${id}')">🎲</div>
+    <div id="${id}-dr" style="font-family:'Baloo 2',sans-serif;font-size:34px;font-weight:800;color:#4f7ef8;text-align:center;min-height:42px;">?</div>
+    <button class="btn ba" style="margin-top:4px;" onclick="rollDice('${id}')">Würfeln!</button>`;
+}
+
+function buildTxtTb(id){
+  return `<div class="txttb">
+    <button onclick="txtSz('${id}',-2)" style="font-weight:900;font-size:13px;min-width:28px;" title="Kleiner">A−</button>
+    <span id="${id}-tsz" style="font-size:11px;color:#8892b0;font-weight:800;min-width:24px;text-align:center;">18</span>
+    <button onclick="txtSz('${id}',+2)" style="font-weight:900;font-size:13px;min-width:28px;" title="Größer">A+</button>
+    <div style="width:1px;height:20px;background:#dde3ff;"></div>
+    <button onclick="txtClr('${id}','#ef4444')" style="color:#ef4444;font-size:16px;padding:2px 5px;border:none;background:none;cursor:pointer;" title="Rot">●</button>
+    <button onclick="txtClr('${id}','#22c55e')" style="color:#22c55e;font-size:16px;padding:2px 5px;border:none;background:none;cursor:pointer;" title="Grün">●</button>
+    <button onclick="txtClr('${id}','#4f7ef8')" style="color:#4f7ef8;font-size:16px;padding:2px 5px;border:none;background:none;cursor:pointer;" title="Blau">●</button>
+    <button onclick="txtClr('${id}','#1e2a4a')" style="color:#1e2a4a;font-size:16px;padding:2px 5px;border:none;background:none;cursor:pointer;" title="Dunkel">●</button>
+    <button onclick="txtClr('${id}','#f59e0b')" style="color:#f59e0b;font-size:16px;padding:2px 5px;border:none;background:none;cursor:pointer;" title="Orange">●</button>
+    <div style="width:1px;height:20px;background:#dde3ff;"></div>
+    <button onclick="document.getElementById('${id}-ta').value=''" style="color:#ef4444;font-size:11px;border:1.5px solid #fecaca;border-radius:6px;padding:3px 7px;background:#fff5f5;cursor:pointer;">✕ Leeren</button>
+  </div>`;
+}
+
+// ═══════════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════════
+function initW(type,id){
+  if(type==='clock'){S[id]={};clockStart(id);}
+  if(type==='timer'){S[id]={interval:null,rem:0,total:0,running:false};}
+  if(type==='stopwatch'){S[id]={interval:null,elapsed:0,running:false,t0:0};}
+  if(type==='noise'){S[id]={stream:null,actx:null,analyser:null,running:false,animId:null};}
+  if(type==='text'){S[id]={size:18};}
+  if(type==='traffic'){
+    S[id]={
+      active:'R',           // current light
+      tlInterval:null,
+      running:false,
+      rem:0,
+      phase:'Arbeitsphase',
+      // Zeiten in Sekunden
+      gSec:180, ySec:60, rSec:0,
+      // Beschriftungen (NUR für Lehrer sichtbar im Einstellungsdialog)
+      gNote:'Kinder arbeiten', yNote:'Langsam zu Ende kommen', rNote:'Stifte weg, Ruhe!'
+    };
+  }
+}
+
+// ═══════════════════════════════════════════
+// CLOCK
+// ═══════════════════════════════════════════
+const DAYS=['Sonntag','Montag','Dienstag','Mittwoch','Donnerstag','Freitag','Samstag'];
+const MON=['Jan','Feb','Mär','Apr','Mai','Jun','Jul','Aug','Sep','Okt','Nov','Dez'];
+function clockStart(id){
+  const tick=()=>{
+    const n=new Date();
+    const te=document.getElementById(`${id}-t`),de=document.getElementById(`${id}-d`);
+    if(!te){clearInterval(S[id].interval);return;}
+    te.textContent=n.toTimeString().slice(0,8);
+    de.textContent=`${DAYS[n.getDay()]}, ${n.getDate()}. ${MON[n.getMonth()]} ${n.getFullYear()}`;
+  };
+  tick(); S[id].interval=setInterval(tick,1000);
+}
+
+// ═══════════════════════════════════════════
+// TIMER
+// ═══════════════════════════════════════════
+function timerToggle(id){
+  const s=S[id],btn=document.getElementById(`${id}-tb`);
+  if(s.running){clearInterval(s.interval);s.running=false;if(btn){btn.textContent='▶ Weiter';btn.className='btn by';}return;}
+  if(s.rem===0){
+    const m=parseInt(document.getElementById(`${id}-m`).value)||0;
+    const sec=parseInt(document.getElementById(`${id}-s`).value)||0;
+    s.total=m*60+sec; s.rem=s.total;
+  }
+  if(s.rem<=0)return;
+  s.running=true; if(btn){btn.textContent='⏸ Pause';btn.className='btn by';}
+  s.interval=setInterval(()=>{
+    s.rem--; timerDraw(id);
+    if(s.rem<=0){clearInterval(s.interval);s.running=false;if(btn){btn.textContent='▶ Start';btn.className='btn bg';}playAlarm();toast('⏰ Zeit ist um!');}
+  },1000);
+}
+function timerReset(id){
+  const s=S[id];if(!s)return;
+  clearInterval(s.interval);s.running=false;s.rem=0;
+  const btn=document.getElementById(`${id}-tb`);if(btn){btn.textContent='▶ Start';btn.className='btn bg';}
+  const d=document.getElementById(`${id}-d`);if(d){d.textContent='00:00';d.style.color='#1e2a4a';}
+  const rg=document.getElementById(`${id}-rg`);if(rg){rg.style.strokeDashoffset='0';rg.style.stroke='#4f7ef8';}
+}
+function timerDraw(id){
+  const s=S[id];
+  const d=document.getElementById(`${id}-d`),rg=document.getElementById(`${id}-rg`);
+  if(!d)return;
+  const m=Math.floor(s.rem/60),sec=s.rem%60;
+  d.textContent=`${p2(m)}:${p2(sec)}`;
+  const pct=s.total>0?s.rem/s.total:1;
+  if(rg){rg.style.strokeDashoffset=352*(1-pct);rg.style.stroke=pct>0.5?'#4f7ef8':pct>0.2?'#f59e0b':'#ef4444';}
+  d.style.color=s.rem<=10?'#ef4444':s.rem<=30?'#b45309':'#1e2a4a';
+}
+function playAlarm(){
+  try{
+    const c=new AudioContext();
+    [0,.35,.7].forEach(t=>{
+      const o=c.createOscillator(),g=c.createGain();
+      o.connect(g);g.connect(c.destination);
+      o.frequency.value=880;
+      g.gain.setValueAtTime(.5,c.currentTime+t);
+      g.gain.exponentialRampToValueAtTime(.001,c.currentTime+t+.3);
+      o.start(c.currentTime+t);o.stop(c.currentTime+t+.3);
+    });
+  }catch(e){}
+}
+function p2(n){return String(n).padStart(2,'0');}
+
+// ═══════════════════════════════════════════
+// STOPWATCH
+// ═══════════════════════════════════════════
+function swToggle(id){
+  const s=S[id],btn=document.getElementById(`${id}-swb`);
+  if(s.running){clearInterval(s.interval);s.running=false;if(btn){btn.textContent='▶ Weiter';btn.className='btn by';}}
+  else{
+    s.t0=Date.now()-s.elapsed;s.running=true;
+    if(btn){btn.textContent='⏸ Pause';btn.className='btn by';}
+    s.interval=setInterval(()=>{
+      s.elapsed=Date.now()-s.t0;
+      const h=Math.floor(s.elapsed/3600000),m=Math.floor((s.elapsed%3600000)/60000),sec=Math.floor((s.elapsed%60000)/1000);
+      const el=document.getElementById(`${id}-sw`);
+      if(el)el.textContent=`${p2(h)}:${p2(m)}:${p2(sec)}`;
+    },100);
+  }
+}
+function swReset(id){
+  const s=S[id];if(!s)return;
+  clearInterval(s.interval);s.running=false;s.elapsed=0;
+  const el=document.getElementById(`${id}-sw`);if(el)el.textContent='00:00:00';
+  const btn=document.getElementById(`${id}-swb`);if(btn){btn.textContent='▶ Start';btn.className='btn bg';}
+}
+
+// ═══════════════════════════════════════════
+// TRAFFIC LIGHT + PHASENTIMER
+// ═══════════════════════════════════════════
+const TL_ON={
+  R:'background:#ef4444;box-shadow:0 0 32px #ef4444,0 0 64px rgba(239,68,68,.6);',
+  Y:'background:#f59e0b;box-shadow:0 0 32px #f59e0b,0 0 64px rgba(245,158,11,.6);',
+  G:'background:#22c55e;box-shadow:0 0 32px #22c55e,0 0 64px rgba(34,197,94,.6);'
+};
+const TL_OFF={R:'background:#3a1010;box-shadow:none;',Y:'background:#3a2e10;box-shadow:none;',G:'background:#0f3a10;box-shadow:none;'};
+
+function tlSetLight(id, color){
+  S[id].active=color;
+  ['R','Y','G'].forEach(x=>{
+    const el=document.getElementById(`${id}-${x}`);if(!el)return;
+    el.style.cssText='width:64px;height:64px;border-radius:50%;cursor:pointer;transition:all .35s;border:3px solid rgba(255,255,255,.06);'+(x===color?TL_ON[x]:TL_OFF[x]);
+  });
+}
+
+function tlStart(id){
+  const s=S[id];
+  if(s.running){
+    // Pause
+    clearInterval(s.tlInterval);s.running=false;
+    const btn=document.getElementById(`${id}-startbtn`);
+    if(btn){btn.textContent='▶ Weiter';btn.className='btn by';}
+    return;
+  }
+  // Start oder Weiter
+  if(!s.running && s.rem===0){
+    // Frisch starten: mit Grün beginnen
+    s.rem = s.gSec;
+    tlSetLight(id,'G');
+  }
+  s.running=true;
+  const btn=document.getElementById(`${id}-startbtn`);
+  if(btn){btn.textContent='⏸ Pause';btn.className='btn by';}
+  s.tlInterval=setInterval(()=>tlTick(id),1000);
+}
+
+function tlTick(id){
+  const s=S[id];
+  s.rem--;
+  // Countdown anzeigen
+  const cdEl=document.getElementById(`${id}-countdown`);
+  if(cdEl){
+    if(s.rem>0){
+      const m=Math.floor(s.rem/60),sec=s.rem%60;
+      cdEl.textContent=`${p2(m)}:${p2(sec)}`;
+      // Farbe des Countdowns je nach Phase
+      cdEl.style.color=s.active==='G'?'#22c55e':s.active==='Y'?'#f59e0b':'#ef4444';
+    } else {
+      cdEl.textContent='';
+    }
+  }
+
+  if(s.rem<=0){
+    // Phase wechseln
+    if(s.active==='G'){
+      // Von Grün zu Gelb
+      tlSetLight(id,'Y');
+      s.rem=s.ySec;
+      if(s.rem<=0){
+        // Kein Gelb konfiguriert, direkt zu Rot
+        tlSetLight(id,'R');
+        s.rem=s.rSec>0?s.rSec:0;
+        if(s.rem<=0){tlEnd(id);return;}
+      }
+    } else if(s.active==='Y'){
+      // Von Gelb zu Rot
+      tlSetLight(id,'R');
+      s.rem=s.rSec>0?s.rSec:0;
+      if(s.rem<=0){tlEnd(id);return;}
+    } else {
+      // Rot ist fertig
+      tlEnd(id);return;
+    }
+  }
+}
+
+function tlEnd(id){
+  const s=S[id];
+  clearInterval(s.tlInterval);s.running=false;s.rem=0;
+  const btn=document.getElementById(`${id}-startbtn`);
+  if(btn){btn.textContent='▶ Start';btn.className='btn bg';}
+  const cdEl=document.getElementById(`${id}-countdown`);
+  if(cdEl){cdEl.textContent='✓ Fertig!';cdEl.style.color='#8892b0';}
+  playAlarm();toast('🚦 Phasen abgeschlossen!');
+}
+
+function tlReset(id){
+  const s=S[id];if(!s)return;
+  clearInterval(s.tlInterval);s.running=false;s.rem=0;
+  tlSetLight(id,'R');
+  const btn=document.getElementById(`${id}-startbtn`);
+  if(btn){btn.textContent='▶ Start';btn.className='btn bg';}
+  const cdEl=document.getElementById(`${id}-countdown`);
+  if(cdEl){cdEl.textContent='—';cdEl.style.color='#4f7ef8';}
+}
+
+function tlOpenSettings(id){
+  const s=S[id];
+  // Modal HTML
+  const html=`
+  <div class="modal-bg" id="modal-${id}" onclick="if(event.target.id==='modal-${id}')closeModal('${id}')">
+    <div class="modal">
+      <h2>⚙️ Ampel einstellen</h2>
+      <div class="mtitle">📋 Phasenname (sichtbar für Kinder)</div>
+      <div class="mrow">
+        <div class="mdot" style="background:#4f7ef8;"></div>
+        <input type="text" id="ms-ph-${id}" value="${s.phase}" placeholder="z.B. Arbeitsphase, Gruppenarbeit...">
+      </div>
+      <div class="msep"></div>
+      <div class="mtitle">⏱ Zeit pro Phase (Minuten : Sekunden)</div>
+      <div class="mrow">
+        <div class="mdot" style="background:#22c55e;"></div>
+        <label>🟢 Grün</label>
+        <input type="number" id="ms-gm-${id}" value="${Math.floor(s.gSec/60)}" min="0" max="99"> <span style="font-size:14px;color:#8892b0;font-weight:800;">Min</span>
+        <input type="number" id="ms-gs-${id}" value="${s.gSec%60}" min="0" max="59" style="width:56px;"> <span style="font-size:14px;color:#8892b0;font-weight:800;">Sek</span>
+      </div>
+      <div class="mrow">
+        <div class="mdot" style="background:#f59e0b;"></div>
+        <label>🟡 Gelb</label>
+        <input type="number" id="ms-ym-${id}" value="${Math.floor(s.ySec/60)}" min="0" max="99"> <span style="font-size:14px;color:#8892b0;font-weight:800;">Min</span>
+        <input type="number" id="ms-ys-${id}" value="${s.ySec%60}" min="0" max="59" style="width:56px;"> <span style="font-size:14px;color:#8892b0;font-weight:800;">Sek</span>
+      </div>
+      <div class="mrow">
+        <div class="mdot" style="background:#ef4444;"></div>
+        <label>🔴 Rot (optional)</label>
+        <input type="number" id="ms-rm-${id}" value="${Math.floor(s.rSec/60)}" min="0" max="99"> <span style="font-size:14px;color:#8892b0;font-weight:800;">Min</span>
+        <input type="number" id="ms-rs-${id}" value="${s.rSec%60}" min="0" max="59" style="width:56px;"> <span style="font-size:14px;color:#8892b0;font-weight:800;">Sek</span>
+      </div>
+      <div class="msep"></div>
+      <div class="mtitle">📝 Lehrer-Notizen (nur für dich, Kinder sehen das NICHT)</div>
+      <div class="mrow"><div class="mdot" style="background:#22c55e;"></div><label>Grün-Hinweis</label><input type="text" id="ms-gn-${id}" value="${s.gNote}" placeholder="z.B. Kinder arbeiten selbständig"></div>
+      <div class="mrow"><div class="mdot" style="background:#f59e0b;"></div><label>Gelb-Hinweis</label><input type="text" id="ms-yn-${id}" value="${s.yNote}" placeholder="z.B. Langsam zu Ende kommen"></div>
+      <div class="mrow"><div class="mdot" style="background:#ef4444;"></div><label>Rot-Hinweis</label><input type="text" id="ms-rn-${id}" value="${s.rNote}" placeholder="z.B. Stifte weg, Ruhe!"></div>
+      <div class="msep"></div>
+      <div style="display:flex;gap:8px;">
+        <button class="btn ba" style="flex:1;" onclick="tlSaveSettings('${id}')">✓ Speichern</button>
+        <button class="btn bm" style="flex:1;" onclick="closeModal('${id}')">Abbrechen</button>
+      </div>
+    </div>
+  </div>`;
+  document.body.insertAdjacentHTML('beforeend',html);
+}
+
+function tlSaveSettings(id){
+  const s=S[id];
+  s.phase = document.getElementById(`ms-ph-${id}`).value || 'Arbeitsphase';
+  s.gSec = (parseInt(document.getElementById(`ms-gm-${id}`).value)||0)*60 + (parseInt(document.getElementById(`ms-gs-${id}`).value)||0);
+  s.ySec = (parseInt(document.getElementById(`ms-ym-${id}`).value)||0)*60 + (parseInt(document.getElementById(`ms-ys-${id}`).value)||0);
+  s.rSec = (parseInt(document.getElementById(`ms-rm-${id}`).value)||0)*60 + (parseInt(document.getElementById(`ms-rs-${id}`).value)||0);
+  s.gNote = document.getElementById(`ms-gn-${id}`).value;
+  s.yNote = document.getElementById(`ms-yn-${id}`).value;
+  s.rNote = document.getElementById(`ms-rn-${id}`).value;
+  // Phasenname im Widget aktualisieren
+  const pn=document.getElementById(`${id}-pname`);
+  if(pn)pn.textContent=s.phase;
+  closeModal(id);
+  tlReset(id);
+  toast('✓ Einstellungen gespeichert!');
+}
+
+function closeModal(id){
+  const m=document.getElementById(`modal-${id}`);if(m)m.remove();
+}
+
+// ═══════════════════════════════════════════
+// NOISE METER — MIKROFON (korrekte Implementierung)
+// ═══════════════════════════════════════════
+async function micToggle(id){
+  const s=S[id];
+  if(s.running){micStop(id);return;}
+  try{
+    const stream=await navigator.mediaDevices.getUserMedia({audio:true,video:false});
+    const ActxClass=window.AudioContext||window.webkitAudioContext;
+    const actx=new ActxClass();
+    // Safari/Chrome benötigen resume()
+    if(actx.state==='suspended')await actx.resume();
+    const src=actx.createMediaStreamSource(stream);
+    const analyser=actx.createAnalyser();
+    analyser.fftSize=2048;
+    analyser.smoothingTimeConstant=0.5;
+    src.connect(analyser);
+    // Alles speichern
+    s.stream=stream; s.actx=actx; s.analyser=analyser; s.running=true;
+    const btn=document.getElementById(`${id}-mb`);
+    if(btn){btn.textContent='⏹ Stoppen';btn.className='btn br';}
+    toast('🎤 Mikrofon aktiv!');
+    micLoop(id);
+  }catch(err){
+    console.error('Mikrofon Fehler:',err.name,err.message);
+    toast('❌ Mikrofon verweigert! Bitte im Browser-Adressleiste erlauben.');
+  }
+}
+
+function micStop(id){
+  const s=S[id];if(!s)return;
+  s.running=false;
+  if(s.animId){cancelAnimationFrame(s.animId);s.animId=null;}
+  if(s.stream){s.stream.getTracks().forEach(t=>{try{t.stop();}catch(e){}});s.stream=null;}
+  if(s.actx){try{s.actx.close();}catch(e){}s.actx=null;}
+  s.analyser=null;
+  const btn=document.getElementById(`${id}-mb`);
+  if(btn){btn.textContent='🎤 Mikrofon starten';btn.className='btn ba';}
+  const f=document.getElementById(`${id}-f`),b=document.getElementById(`${id}-b`),l=document.getElementById(`${id}-l`);
+  if(f){f.textContent='😊';f.style.filter='';f.classList.remove('shk');}
+  if(b){b.style.width='0%';b.style.background='#22c55e';}
+  if(l)l.textContent='Mikrofon starten ↓';
+}
+
+function micLoop(id){
+  const s=S[id];
+  if(!s||!s.running||!s.analyser){return;}
+  const buf=new Uint8Array(s.analyser.frequencyBinCount);
+  s.analyser.getByteFrequencyData(buf);
+  // RMS über alle Frequenzbänder
+  let sum=0;
+  for(let i=0;i<buf.length;i++) sum+=(buf[i]/255)*(buf[i]/255);
+  const rms=Math.sqrt(sum/buf.length); // 0.0 .. 1.0
+
+  const svEl=document.getElementById(`${id}-sv`);
+  const mvEl=document.getElementById(`${id}-mv`);
+  const sens=svEl?parseFloat(svEl.value):5;
+  const maxV=mvEl?parseFloat(mvEl.value):18;
+
+  // Pegel berechnen: rms * 100 * Empfindlichkeit, normiert auf maxV
+  const raw=rms*100*sens;
+  const pct=Math.min(100,(raw/maxV)*100);
+
+  const bar =document.getElementById(`${id}-b`);
+  const face=document.getElementById(`${id}-f`);
+  const lbl =document.getElementById(`${id}-l`);
+
+  if(bar){
+    bar.style.width=pct+'%';
+    bar.style.background=pct<35?'#22c55e':pct<68?'#f59e0b':'#ef4444';
+  }
+  if(face){
+    face.classList.remove('shk');
+    if(pct<22){
+      face.textContent='😊';
+      face.style.filter='drop-shadow(0 0 14px rgba(34,197,94,.9))';
+    } else if(pct<50){
+      face.textContent='😐';
+      face.style.filter='drop-shadow(0 0 10px rgba(245,158,11,.7))';
+    } else if(pct<76){
+      face.textContent='😟';
+      face.style.filter='drop-shadow(0 0 14px rgba(245,158,11,.9))';
+    } else {
+      face.textContent='😡';
+      face.style.filter='drop-shadow(0 0 22px rgba(239,68,68,1))';
+      face.classList.add('shk');
+    }
+  }
+  if(lbl){
+    if(pct<22)      lbl.textContent='😊 Super ruhig – Toll!';
+    else if(pct<50) lbl.textContent='😐 Etwas laut';
+    else if(pct<76) lbl.textContent='😟 Zu laut!';
+    else            lbl.textContent='😡 VIEL ZU LAUT!!!';
+  }
+  s.animId=requestAnimationFrame(()=>micLoop(id));
+}
+
+// ═══════════════════════════════════════════
+// NAMES
+// ═══════════════════════════════════════════
+function pickName(id){
+  const ta=document.getElementById(`${id}-nl`),r=document.getElementById(`${id}-r`);
+  if(!ta||!r)return;
+  const names=ta.value.split('\n').map(n=>n.trim()).filter(Boolean);
+  if(!names.length){toast('❌ Bitte Namen eingeben!');return;}
+  r.style.opacity='0';r.style.transform='scale(0.2) rotate(-15deg)';r.style.transition='none';
+  setTimeout(()=>{
+    r.textContent=names[Math.floor(Math.random()*names.length)];
+    r.style.transition='all .4s cubic-bezier(.34,1.56,.64,1)';
+    r.style.opacity='1';r.style.transform='scale(1) rotate(0)';
+  },100);
+}
+
+// ═══════════════════════════════════════════
+// SYMBOLS
+// ═══════════════════════════════════════════
+function symSet(id,idx){
+  for(let i=0;i<4;i++){
+    const b=document.getElementById(`${id}-sy${i}`);if(!b)continue;
+    if(i===idx){b.style.borderColor='#4f7ef8';b.style.background='rgba(79,126,248,.1)';b.style.color='#4f7ef8';b.style.boxShadow='0 0 12px rgba(79,126,248,.2)';}
+    else{b.style.borderColor='#dde3ff';b.style.background='#f8f9ff';b.style.color='#8892b0';b.style.boxShadow='none';}
+  }
+}
+
+// ═══════════════════════════════════════════
+// TEXT
+// ═══════════════════════════════════════════
+function txtSz(id,d){
+  const s=S[id];if(!s)return;
+  s.size=Math.max(10,Math.min(80,s.size+d));
+  const ta=document.getElementById(`${id}-ta`),sz=document.getElementById(`${id}-tsz`);
+  if(ta)ta.style.fontSize=s.size+'px';
+  if(sz)sz.textContent=s.size;
+}
+function txtClr(id,col){
+  const ta=document.getElementById(`${id}-ta`);if(ta)ta.style.color=col;
+}
+
+// ═══════════════════════════════════════════
+// DICE
+// ═══════════════════════════════════════════
+const FACES=['⚀','⚁','⚂','⚃','⚄','⚅'];
+function rollDice(id){
+  const df=document.getElementById(`${id}-df`),dr=document.getElementById(`${id}-dr`);
+  if(!df||!dr)return;
+  df.style.transition='transform .35s';df.style.transform='rotate(720deg) scale(0.3)';
+  const n=Math.floor(Math.random()*6);
+  setTimeout(()=>{df.textContent=FACES[n];dr.textContent=n+1;df.style.transform='rotate(0) scale(1)';},350);
+}
+
+// ═══════════════════════════════════════════
+// BACKGROUND
+// ═══════════════════════════════════════════
+function setBg(dot,color){
+  document.body.style.background=color;
+  document.querySelectorAll('.bgdot').forEach(d=>d.classList.remove('on'));
+  dot.classList.add('on');
+}
+
+// ═══════════════════════════════════════════
+// TOAST
+// ═══════════════════════════════════════════
+function toast(msg){
+  const t=document.getElementById('toast');
+  t.textContent=msg;t.classList.add('on');
+  clearTimeout(t._t);t._t=setTimeout(()=>t.classList.remove('on'),2600);
+}
+
+// ═══════════════════════════════════════════
+// AUTO START
+// ═══════════════════════════════════════════
+window.addEventListener('load',()=>{
+  setTimeout(()=>{
+    add('traffic');
+    const t=document.getElementById('w'+wN);
+    if(t){t.style.left='14px';t.style.top='66px';}
+
+    add('timer');
+    const tm=document.getElementById('w'+wN);
+    if(tm){tm.style.left='240px';tm.style.top='66px';}
+
+    add('noise');
+    const n=document.getElementById('w'+wN);
+    if(n){n.style.left='478px';n.style.top='66px';}
+
+    add('symbols');
+    const sy=document.getElementById('w'+wN);
+    if(sy){sy.style.left='750px';sy.style.top='66px';}
+
+    add('clock');
+    const cl=document.getElementById('w'+wN);
+    if(cl){cl.style.left=(innerWidth-248)+'px';cl.style.top='66px';}
+
+    add('text');
+    const tx=document.getElementById('w'+wN);
+    if(tx){tx.style.left=(innerWidth-320)+'px';tx.style.top='240px';tx.style.width='304px';tx.style.height='244px';}
+  },150);
+});
+</script>
+</body>
+</html>
