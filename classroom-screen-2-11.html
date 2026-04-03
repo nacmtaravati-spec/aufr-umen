@@ -1,0 +1,796 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ClassScreen – Boehlitz-Ehrenberg</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;800;900&family=Baloo+2:wght@700;800&display=swap');
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Nunito',sans-serif;background:#f0f4ff;min-height:100vh;overflow:hidden;}
+
+/* ── TOOLBAR ── */
+#toolbar {
+  position:fixed;top:0;left:0;right:0;
+  background:linear-gradient(135deg,#4f7ef8 0%,#7c3aed 100%);
+  box-shadow:0 4px 20px rgba(79,126,248,.4);
+  z-index:1000;
+  padding:10px 12px 0;
+}
+#tb-top {
+  display:flex;align-items:center;gap:10px;margin-bottom:10px;
+}
+.logo {
+  font-family:'Baloo 2',sans-serif;font-size:18px;font-weight:800;
+  color:#fff;white-space:nowrap;flex-shrink:0;
+  text-shadow:0 2px 8px rgba(0,0,0,.2);
+}
+.logo span{opacity:.7;font-size:13px;font-weight:700;margin-left:4px;}
+
+/* BG DOTS */
+.bgwrap{display:flex;align-items:center;gap:5px;margin-left:auto;}
+.bgwrap small{font-size:10px;color:rgba(255,255,255,.7);font-weight:700;}
+.bgdot{width:20px;height:20px;border-radius:50%;cursor:pointer;border:2px solid transparent;transition:all .2s;flex-shrink:0;}
+.bgdot.on{border-color:#fff;transform:scale(1.15);}
+
+/* WIDGET TABS */
+#tb-tabs {
+  display:flex;gap:6px;overflow-x:auto;padding-bottom:0;
+}
+#tb-tabs::-webkit-scrollbar{display:none;}
+.tab {
+  display:flex;align-items:center;gap:5px;
+  padding:8px 14px;border-radius:12px 12px 0 0;
+  border:none;cursor:pointer;
+  font-family:'Nunito',sans-serif;font-size:12px;font-weight:800;
+  white-space:nowrap;flex-shrink:0;
+  transition:all .2s;
+  background:rgba(255,255,255,.18);
+  color:rgba(255,255,255,.85);
+  border:1.5px solid rgba(255,255,255,.2);
+  border-bottom:none;
+  position:relative;
+}
+.tab:hover{background:rgba(255,255,255,.28);color:#fff;}
+.tab.on{
+  background:#fff;color:#4f7ef8;
+  box-shadow:0 -4px 12px rgba(79,126,248,.2);
+}
+.tab .tab-ic{font-size:15px;}
+.tab .tab-close{
+  width:16px;height:16px;border-radius:50%;border:none;background:rgba(0,0,0,.1);
+  color:inherit;font-size:11px;cursor:pointer;display:flex;align-items:center;justify-content:center;
+  transition:all .15s;padding:0;line-height:1;
+}
+.tab .tab-close:hover{background:#ef4444;color:#fff;}
+.tab.on .tab-close{background:rgba(79,126,248,.15);}
+
+/* ADD BUTTONS */
+#tb-add {
+  display:flex;gap:4px;overflow-x:auto;padding:8px 12px 10px;
+  border-top:1px solid rgba(255,255,255,.15);margin-top:8px;
+}
+#tb-add::-webkit-scrollbar{display:none;}
+.add-btn {
+  display:flex;align-items:center;gap:4px;
+  padding:5px 10px;border-radius:20px;border:1.5px solid rgba(255,255,255,.3);
+  background:rgba(255,255,255,.12);color:rgba(255,255,255,.9);
+  cursor:pointer;font-family:'Nunito',sans-serif;font-size:11px;font-weight:800;
+  white-space:nowrap;flex-shrink:0;transition:all .15s;
+}
+.add-btn:hover{background:rgba(255,255,255,.25);border-color:rgba(255,255,255,.5);}
+.add-btn .ai{font-size:13px;}
+
+/* ── BOARD ── */
+#board {
+  position:fixed;
+  left:0;right:0;bottom:0;
+  background:#f0f4ff;
+  overflow:hidden;
+}
+
+/* ── PANEL ── */
+.panel {
+  position:absolute;
+  background:#fff;
+  border:1.5px solid #dde3ff;
+  border-radius:16px;
+  box-shadow:0 6px 24px rgba(79,126,248,.12);
+  display:flex;flex-direction:column;
+  overflow:hidden;
+  min-width:300px;min-height:160px;
+}
+.panel-head {
+  display:flex;align-items:center;gap:7px;
+  padding:9px 12px;
+  background:linear-gradient(135deg,#f8f9ff,#eef2ff);
+  border-bottom:1.5px solid #dde3ff;
+  flex-shrink:0;cursor:grab;
+}
+.panel-head:active{cursor:grabbing;}
+.panel-ic{font-size:14px;}
+.panel-title{font-size:11px;font-weight:900;letter-spacing:.5px;text-transform:uppercase;color:#7c89b0;flex:1;}
+.panel-body{flex:1;padding:14px;overflow-y:auto;overflow-x:hidden;display:flex;flex-direction:column;align-items:center;justify-content:center;}
+.rzh{position:absolute;bottom:0;right:0;width:20px;height:20px;cursor:se-resize;display:flex;align-items:flex-end;justify-content:flex-end;padding:4px;}
+.rzh::after{content:'';width:8px;height:8px;border-right:2px solid #c0c8e8;border-bottom:2px solid #c0c8e8;border-radius:1px;}
+
+/* ── BUTTONS ── */
+.btn{padding:8px 14px;border-radius:10px;border:none;font-family:'Nunito',sans-serif;font-size:13px;font-weight:800;cursor:pointer;transition:all .15s;}
+.btn:hover{filter:brightness(1.08);}
+.bg{background:#dcfce7;color:#15803d;} .by{background:#fef3c7;color:#b45309;}
+.bm{background:#f1f5f9;color:#64748b;border:1.5px solid #dde3ff;}
+.ba{background:linear-gradient(135deg,#4f7ef8,#7c3aed);color:#fff;}
+.br{background:#fee2e2;color:#dc2626;}
+.btn-row{display:flex;gap:6px;width:100%;margin-top:8px;}
+.btn-row .btn{flex:1;}
+
+/* ── NOISE ── */
+/* shake removed */
+
+/* ── TRAFFIC LIGHT ── */
+.tlbox{background:#111;border-radius:20px;padding:12px 16px;display:flex;flex-direction:column;gap:10px;border:3px solid #2a2a2a;}
+.tlb{width:56px;height:56px;border-radius:50%;cursor:pointer;transition:all .35s;border:3px solid rgba(255,255,255,.06);}
+
+/* ── TIMER ── */
+.clkbig{font-family:'Baloo 2',sans-serif;font-size:44px;font-weight:800;color:#4f7ef8;text-align:center;letter-spacing:1px;}
+.timer-inputs{display:flex;gap:6px;align-items:center;margin:8px 0;}
+.timer-inputs input{width:50px;text-align:center;padding:5px;border-radius:8px;border:1.5px solid #dde3ff;background:#f8f9ff;color:#1e2a4a;font-family:'Baloo 2',sans-serif;font-size:18px;font-weight:800;outline:none;}
+
+/* ── TEXT ── */
+.txt-tb{display:flex;align-items:center;gap:4px;padding:6px 10px;border-bottom:1.5px solid #dde3ff;background:#f8f9ff;flex-wrap:wrap;flex-shrink:0;}
+.txt-tb button{padding:3px 7px;border-radius:6px;border:1.5px solid #dde3ff;background:#fff;cursor:pointer;font-size:12px;font-weight:800;color:#1e2a4a;transition:all .15s;font-family:'Nunito',sans-serif;}
+.txt-tb button:hover{background:#4f7ef8;color:#fff;border-color:#4f7ef8;}
+
+/* ── SYMBOLS ── */
+.sym-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;width:100%;}
+.sym-btn{display:flex;flex-direction:column;align-items:center;gap:4px;padding:10px 6px;border-radius:12px;border:2px solid #dde3ff;cursor:pointer;background:#f8f9ff;color:#8892b0;font-family:'Nunito',sans-serif;font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.5px;transition:all .2s;}
+.sym-btn .si{font-size:22px;}
+.sym-btn.on{border-color:#4f7ef8;background:rgba(79,126,248,.1);color:#4f7ef8;}
+
+/* ── MODAL ── */
+#modal{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:5000;display:none;align-items:center;justify-content:center;padding:16px;backdrop-filter:blur(4px);}
+#modal.open{display:flex;}
+#mbox{background:#fff;border-radius:20px;padding:24px;width:100%;max-width:420px;max-height:90vh;overflow-y:auto;box-shadow:0 12px 48px rgba(0,0,0,.25);}
+.mtitle{font-size:17px;font-weight:900;color:#1e2a4a;margin-bottom:16px;display:flex;justify-content:space-between;align-items:center;}
+.mcl{background:none;border:none;font-size:18px;cursor:pointer;color:#8892b0;}
+.mcl:hover{color:#ef4444;}
+.msec{font-size:10px;font-weight:900;text-transform:uppercase;letter-spacing:.5px;color:#8892b0;margin:14px 0 6px;padding-bottom:5px;border-bottom:1.5px solid #eef2ff;}
+.mrow{display:flex;align-items:center;gap:10px;margin-bottom:8px;}
+.mrow label{font-size:12px;font-weight:800;color:#1e2a4a;min-width:100px;}
+.minp{flex:1;padding:7px 10px;border-radius:9px;border:1.5px solid #dde3ff;background:#f8f9ff;color:#1e2a4a;font-family:'Nunito',sans-serif;font-size:13px;font-weight:700;outline:none;}
+.minp:focus{border-color:#4f7ef8;}
+.note{font-size:11px;color:#8892b0;padding:8px 12px;background:#f8f9ff;border-radius:8px;border-left:3px solid #4f7ef8;line-height:1.5;margin-bottom:6px;}
+
+/* MISC */
+input[type=range]{accent-color:#4f7ef8;width:100%;}
+input[type=number]{background:#f8f9ff;color:#1e2a4a;border:1.5px solid #dde3ff;border-radius:8px;padding:4px 6px;font-family:'Nunito',sans-serif;outline:none;}
+textarea{resize:none;outline:none;font-family:'Nunito',sans-serif;}
+
+/* TOAST */
+#toast{position:fixed;bottom:16px;left:50%;transform:translateX(-50%) translateY(70px);background:#1e2a4a;color:#fff;padding:10px 22px;border-radius:30px;font-weight:800;font-size:13px;z-index:9000;transition:transform .3s;pointer-events:none;}
+#toast.on{transform:translateX(-50%) translateY(0);}
+</style>
+</head>
+<body>
+
+<!-- TOOLBAR -->
+<div id="toolbar">
+  <div id="tb-top">
+    <div class="logo">📺 ClassScreen <span>Boehlitz-Ehrenberg</span></div>
+    <div class="bgwrap">
+      <small>BG:</small>
+      <div class="bgdot on"  style="background:#f0f4ff" onclick="setBg(this,'#f0f4ff')" title="Hell-Blau"></div>
+      <div class="bgdot"     style="background:#fffbeb" onclick="setBg(this,'#fffbeb')" title="Warm"></div>
+      <div class="bgdot"     style="background:#f0fdf4" onclick="setBg(this,'#f0fdf4')" title="Grün"></div>
+      <div class="bgdot"     style="background:#fdf4ff" onclick="setBg(this,'#fdf4ff')" title="Lila"></div>
+      <div class="bgdot"     style="background:#1a1f2e;border-color:rgba(255,255,255,.3)" onclick="setBg(this,'#1a1f2e')" title="Dunkel"></div>
+    </div>
+  </div>
+
+  <!-- TABS (offene Panels) -->
+  <div id="tb-tabs"></div>
+
+  <!-- ADD BUTTONS -->
+  <div id="tb-add">
+    <small style="font-size:10px;color:rgba(255,255,255,.6);font-weight:700;white-space:nowrap;align-self:center;">+ Hinzufügen:</small>
+    <button class="add-btn" onclick="openPanel('noise')">   <span class="ai">🎤</span>Lautstärke</button>
+    <button class="add-btn" onclick="openPanel('traffic')"> <span class="ai">🚦</span>Ampel</button>
+    <button class="add-btn" onclick="openPanel('timer')">   <span class="ai">⏱️</span>Timer</button>
+    <button class="add-btn" onclick="openPanel('clock')">   <span class="ai">🕐</span>Uhr</button>
+    <button class="add-btn" onclick="openPanel('names')">   <span class="ai">👤</span>Namen</button>
+    <button class="add-btn" onclick="openPanel('symbols')"> <span class="ai">🤫</span>Symbole</button>
+    <button class="add-btn" onclick="openPanel('text')">    <span class="ai">📝</span>Text</button>
+    <button class="add-btn" onclick="openPanel('stopwatch')"><span class="ai">⏱</span>Stoppuhr</button>
+    <button class="add-btn" onclick="openPanel('dice')">    <span class="ai">🎲</span>Würfel</button>
+  </div>
+</div>
+
+<div id="board"></div>
+
+<!-- MODAL (Ampel) -->
+<div id="modal" onclick="if(event.target===this)closeModal()">
+  <div id="mbox">
+    <div class="mtitle"><span>⚙️ Ampel-Einstellungen</span><button class="mcl" onclick="closeModal()">✕</button></div>
+    <div class="msec">📋 Phasenname (nur für dich)</div>
+    <div class="mrow"><label>Phase:</label><input class="minp" id="m-phase" value="Arbeitsphase"></div>
+    <div class="note">💡 Die Hinweise siehst nur <strong>du</strong> – Kinder sehen nur die Ampelfarbe!</div>
+    <div class="msec">🟢 Grün – Arbeiten</div>
+    <div class="mrow"><label>Dein Hinweis:</label><input class="minp" id="m-lG" value="Kinder arbeiten!"></div>
+    <div class="mrow"><label>Dauer:</label><input class="minp" id="m-tG" type="number" min="0" max="60" value="5" style="max-width:70px;"> <span style="font-size:12px;color:#8892b0;">Min.</span></div>
+    <div class="msec">🟡 Gelb – Zu Ende kommen</div>
+    <div class="mrow"><label>Dein Hinweis:</label><input class="minp" id="m-lY" value="Langsam fertig werden"></div>
+    <div class="mrow"><label>Dauer:</label><input class="minp" id="m-tY" type="number" min="0" max="30" value="2" style="max-width:70px;"> <span style="font-size:12px;color:#8892b0;">Min.</span></div>
+    <div class="msec">🔴 Rot – Stopp</div>
+    <div class="mrow"><label>Dein Hinweis:</label><input class="minp" id="m-lR" value="Stifte weg – Ruhe!"></div>
+    <div class="note">Rot bleibt bis du ⏹ Stopp drückst.</div>
+    <div style="display:flex;gap:10px;margin-top:18px;">
+      <button class="btn ba" style="flex:1;padding:12px;" onclick="tlSaveStart()">▶ Starten!</button>
+      <button class="btn bm" style="flex:1;padding:12px;" onclick="closeModal()">Abbrechen</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+// ═══════════════════════════════════════
+// TOOLBAR HEIGHT (computed after render)
+// ═══════════════════════════════════════
+let TB_H = 0;
+function updateBoard() {
+  TB_H = document.getElementById('toolbar').offsetHeight;
+  const board = document.getElementById('board');
+  board.style.top = TB_H + 'px';
+}
+
+// ═══════════════════════════════════════
+// DRAG & RESIZE
+// ═══════════════════════════════════════
+let drag=null, rsz=null;
+document.addEventListener('mousemove', e => {
+  if (drag) {
+    const el = document.getElementById(drag.id);
+    if (!el) return;
+    let nx = e.clientX - drag.ox, ny = e.clientY - drag.oy;
+    nx = Math.max(0, Math.min(nx, innerWidth - el.offsetWidth));
+    ny = Math.max(0, Math.min(ny, innerHeight - TB_H - el.offsetHeight));
+    el.style.left = nx+'px'; el.style.top = ny+'px';
+  }
+  if (rsz) {
+    const el = document.getElementById(rsz.id);
+    if (!el) return;
+    const r = el.getBoundingClientRect();
+    el.style.width  = Math.max(220, e.clientX - r.left)+'px';
+    el.style.height = Math.max(160, e.clientY - r.top)+'px';
+  }
+});
+document.addEventListener('mouseup', () => { drag=null; rsz=null; });
+function startDrag(e, id) {
+  if (e.target.closest('.tab-close,.btn,.add-btn,.mcl,.minp,.tlb,input,textarea,button')) return;
+  e.preventDefault();
+  const r = document.getElementById(id).getBoundingClientRect();
+  drag = {id, ox: e.clientX-r.left, oy: e.clientY-r.top};
+  bringToFront(id);
+}
+function startRsz(e, id) { e.preventDefault(); e.stopPropagation(); rsz={id}; }
+
+// ═══════════════════════════════════════
+// PANEL SYSTEM
+// ═══════════════════════════════════════
+let pCount=0, zTop=10;
+const panels = {}; // id -> {type, state}
+
+const PCFG = {
+  noise:    {t:'Lautstärke',    ic:'🎤', w:300, h:360},
+  traffic:  {t:'Ampel',         ic:'🚦', w:220, h:360},
+  timer:    {t:'Timer',         ic:'⏱️', w:240, h:290},
+  clock:    {t:'Uhr',           ic:'🕐', w:240, h:140},
+  names:    {t:'Zufallsname',   ic:'👤', w:250, h:270},
+  symbols:  {t:'Symbole',       ic:'🤫', w:290, h:280},
+  text:     {t:'Text',          ic:'📝', w:320, h:240},
+  stopwatch:{t:'Stoppuhr',      ic:'⏱',  w:220, h:160},
+  dice:     {t:'Würfel',        ic:'🎲', w:210, h:210},
+};
+
+function openPanel(type) {
+  pCount++;
+  const id = 'p'+pCount;
+  const cfg = PCFG[type];
+  const boardH = innerHeight - TB_H;
+  const x = Math.min(20 + (pCount%6)*30, innerWidth-cfg.w-20);
+  const y = Math.min(20 + (pCount%4)*20, boardH-cfg.h-20);
+
+  const el = document.createElement('div');
+  el.className='panel'; el.id=id; el.dataset.type=type;
+  el.style.cssText=`left:${x}px;top:${y}px;width:${cfg.w}px;height:${cfg.h}px;z-index:${++zTop};`;
+
+  if (type==='text') {
+    el.innerHTML = `
+      <div class="panel-head" onmousedown="startDrag(event,'${id}')">
+        <span class="panel-ic">${cfg.ic}</span>
+        <span class="panel-title">${cfg.t}</span>
+      </div>
+      ${buildTxtTb(id)}
+      <textarea id="${id}-ta" style="flex:1;width:100%;padding:12px;border:none;color:#1e2a4a;font-size:18px;font-weight:600;line-height:1.6;background:transparent;min-height:60px;" placeholder="Aufgabe, Hausaufgaben, Info..."></textarea>
+      <div class="rzh" onmousedown="startRsz(event,'${id}')"></div>`;
+  } else {
+    el.innerHTML = `
+      <div class="panel-head" onmousedown="startDrag(event,'${id}')">
+        <span class="panel-ic">${cfg.ic}</span>
+        <span class="panel-title">${cfg.t}</span>
+      </div>
+      <div class="panel-body" id="${id}-b">${buildBody(type,id)}</div>
+      <div class="rzh" onmousedown="startRsz(event,'${id}')"></div>`;
+  }
+
+  document.getElementById('board').appendChild(el);
+  panels[id] = {type, state:{}};
+  initPanel(type, id);
+  addTab(id, cfg.ic, cfg.t);
+  bringToFront(id);
+  toast(cfg.ic+' '+cfg.t+' geöffnet');
+}
+
+function closePanel(id) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  const s = panels[id]?.state;
+  if (s) {
+    if (s.interval) clearInterval(s.interval);
+    if (s.tlInterval) clearInterval(s.tlInterval);
+    if (s.animId) cancelAnimationFrame(s.animId);
+    if (s.stream) s.stream.getTracks().forEach(t=>{try{t.stop();}catch(e){}});
+    if (s.actx) {try{s.actx.close();}catch(e){}}
+  }
+  delete panels[id];
+  el.remove();
+  removeTab(id);
+}
+
+function bringToFront(id) {
+  document.getElementById(id).style.zIndex = ++zTop;
+  // highlight tab
+  document.querySelectorAll('.tab').forEach(t=>t.classList.toggle('on', t.dataset.pid===id));
+}
+
+// ═══════════════════════════════════════
+// TABS
+// ═══════════════════════════════════════
+function addTab(id, ic, title) {
+  const tabs = document.getElementById('tb-tabs');
+  const tab = document.createElement('button');
+  tab.className='tab on';
+  tab.dataset.pid=id;
+  tab.innerHTML=`<span class="tab-ic">${ic}</span>${title}<button class="tab-close" onclick="event.stopPropagation();closePanel('${id}')">✕</button>`;
+  tab.addEventListener('click', () => {
+    bringToFront(id);
+    // scroll panel into view if needed
+    const el = document.getElementById(id);
+    if (el) { el.style.zIndex=++zTop; }
+  });
+  // deactivate others
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('on'));
+  tabs.appendChild(tab);
+  tabs.scrollLeft = tabs.scrollWidth;
+  updateBoard();
+}
+function removeTab(id) {
+  document.querySelectorAll('.tab').forEach(t=>{if(t.dataset.pid===id)t.remove();});
+  updateBoard();
+}
+
+// ═══════════════════════════════════════
+// BODY BUILDERS
+// ═══════════════════════════════════════
+function buildBody(type, id) {
+  if (type==='noise') return `
+    <div style="display:flex;flex-direction:column;align-items:center;justify-content:space-between;width:100%;height:100%;padding:10px 8px;">
+
+      <!-- GROSSES GESICHT -->
+      <div id="${id}-face" style="font-size:90px;line-height:1;text-align:center;transition:all .4s ease;">😊</div>
+      <div id="${id}-lbl" style="font-size:15px;font-weight:900;text-align:center;color:#15803d;min-height:22px;transition:color .4s;">Super ruhig!</div>
+
+      <!-- VERTIKALER SCHIEBEREGLER -->
+      <div style="display:flex;flex-direction:column;align-items:center;gap:8px;width:100%;margin:10px 0;">
+        <span style="font-size:11px;font-weight:800;color:#ef4444;">😡 Sehr laut</span>
+        <div style="position:relative;width:100%;height:48px;display:flex;align-items:center;">
+          <!-- Farbiger Hintergrund der Skala -->
+          <div style="position:absolute;left:0;right:0;height:20px;border-radius:10px;background:linear-gradient(to right,#22c55e 0%,#86efac 20%,#fde68a 45%,#fb923c 70%,#ef4444 100%);box-shadow:0 2px 8px rgba(0,0,0,.15);"></div>
+          <input type="range" id="${id}-slider"
+            min="0" max="100" value="0"
+            style="position:relative;width:100%;height:20px;-webkit-appearance:none;appearance:none;background:transparent;cursor:pointer;z-index:1;"
+            oninput="noiseSliderUpdate('${id}',this.value)">
+        </div>
+        <span style="font-size:11px;font-weight:800;color:#15803d;">😊 Sehr ruhig</span>
+      </div>
+
+      <!-- STUFEN ANZEIGE -->
+      <div style="display:flex;justify-content:space-between;width:100%;padding:0 2px;">
+        <div onclick="noiseSliderSet('${id}',0)"  style="cursor:pointer;font-size:18px;opacity:.5;transition:all .2s;" title="Ruhig">😊</div>
+        <div onclick="noiseSliderSet('${id}',25)" style="cursor:pointer;font-size:18px;opacity:.5;transition:all .2s;" title="Ok">🙂</div>
+        <div onclick="noiseSliderSet('${id}',50)" style="cursor:pointer;font-size:18px;opacity:.5;transition:all .2s;" title="Etwas laut">😐</div>
+        <div onclick="noiseSliderSet('${id}',75)" style="cursor:pointer;font-size:18px;opacity:.5;transition:all .2s;" title="Laut">😟</div>
+        <div onclick="noiseSliderSet('${id}',100)" style="cursor:pointer;font-size:18px;opacity:.5;transition:all .2s;" title="Sehr laut">😡</div>
+      </div>
+
+    </div>`;
+
+  if (type==='traffic') return `
+    <div style="display:flex;flex-direction:column;align-items:center;width:100%;gap:8px;">
+      <div class="tlbox">
+        <div id="${id}-R" class="tlb" onclick="tlSet('${id}','R')" style="background:#ef4444;box-shadow:0 0 24px #ef4444,0 0 48px rgba(239,68,68,.4);"></div>
+        <div id="${id}-Y" class="tlb" onclick="tlSet('${id}','Y')" style="background:#3a2e10;"></div>
+        <div id="${id}-G" class="tlb" onclick="tlSet('${id}','G')" style="background:#0f3a10;"></div>
+      </div>
+      <div id="${id}-ll" style="font-size:14px;font-weight:800;text-align:center;color:#1e2a4a;">🔴 Stifte weg!</div>
+      <div style="width:100%;height:8px;background:#eef2ff;border-radius:4px;overflow:hidden;border:1px solid #dde3ff;">
+        <div id="${id}-tb" style="height:100%;width:0%;background:#22c55e;border-radius:4px;transition:width .5s linear,background .5s;"></div>
+      </div>
+      <div id="${id}-ts" style="font-size:11px;color:#8892b0;font-weight:700;text-align:center;">Nicht gestartet</div>
+      <div class="btn-row">
+        <button class="btn bg" style="font-size:11px;" onclick="tlOpenModal('${id}')">⚙️ Einstellungen & Start</button>
+        <button class="btn br" style="font-size:11px;" onclick="tlStop('${id}')">⏹ Stopp</button>
+      </div>
+    </div>`;
+
+  if (type==='timer') return `
+    <div style="position:relative;width:120px;height:120px;margin:0 auto 10px;">
+      <svg width="120" height="120" viewBox="0 0 120 120" style="transform:rotate(-90deg);">
+        <circle cx="60" cy="60" r="52" fill="none" stroke="#eef2ff" stroke-width="10"/>
+        <circle id="${id}-rg" cx="60" cy="60" r="52" fill="none" stroke="#4f7ef8" stroke-width="10" stroke-linecap="round" stroke-dasharray="327" stroke-dashoffset="0" style="transition:stroke-dashoffset .5s,stroke .4s;"/>
+      </svg>
+      <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;">
+        <span id="${id}-d" style="font-family:'Baloo 2',sans-serif;font-size:24px;font-weight:800;color:#1e2a4a;">05:00</span>
+      </div>
+    </div>
+    <div class="timer-inputs">
+      <input type="number" id="${id}-m" value="5" min="0" max="99">
+      <span style="font-size:20px;font-weight:800;color:#8892b0;">:</span>
+      <input type="number" id="${id}-s" value="0" min="0" max="59">
+    </div>
+    <div class="btn-row">
+      <button id="${id}-tb2" class="btn bg" onclick="timerToggle('${id}')">▶ Start</button>
+      <button class="btn bm" onclick="timerReset('${id}')">↺ Reset</button>
+    </div>`;
+
+  if (type==='clock') return `
+    <div id="${id}-t" class="clkbig">00:00:00</div>
+    <div id="${id}-d" style="font-size:12px;color:#8892b0;font-weight:700;text-align:center;margin-top:4px;"></div>`;
+
+  if (type==='names') return `
+    <div id="${id}-r" style="font-family:'Baloo 2',sans-serif;font-size:28px;font-weight:800;color:#4f7ef8;text-align:center;min-height:40px;margin-bottom:8px;transition:all .15s;">—</div>
+    <textarea id="${id}-nl" style="width:100%;height:76px;padding:8px;border-radius:10px;border:1.5px solid #dde3ff;background:#f8f9ff;color:#1e2a4a;font-size:12px;" placeholder="Namen eingeben&#10;(ein Name pro Zeile)"></textarea>
+    <button class="btn ba" style="width:100%;margin-top:8px;" onclick="pickName('${id}')">🎲 Zufälliger Name</button>`;
+
+  if (type==='symbols') return `
+    <div class="sym-grid">
+      ${[
+        ['🤫','Stille'],
+        ['🗣️','Flüstern'],
+        ['👥','Nachbar fragen'],
+        ['🤝','Zusammenarbeiten'],
+        ['🤐','Shhhh! Ruhe!'],
+        ['👏','Achtung!']
+      ].map((s,i)=>`
+      <button class="sym-btn" id="${id}-sy${i}" onclick="symSet('${id}',${i})">
+        <span class="si">${s[0]}</span>${s[1]}
+      </button>`).join('')}
+    </div>`;
+
+  if (type==='stopwatch') return `
+    <div id="${id}-sw" style="font-family:'Baloo 2',sans-serif;font-size:34px;font-weight:800;color:#4f7ef8;letter-spacing:2px;text-align:center;">00:00:00</div>
+    <div class="btn-row" style="margin-top:10px;">
+      <button id="${id}-swb" class="btn bg" onclick="swToggle('${id}')">▶ Start</button>
+      <button class="btn bm" onclick="swReset('${id}')">↺ Reset</button>
+    </div>`;
+
+  if (type==='dice') return `
+    <div id="${id}-df" style="font-size:68px;cursor:pointer;text-align:center;display:block;" onclick="rollDice('${id}')">🎲</div>
+    <div id="${id}-dr" style="font-family:'Baloo 2',sans-serif;font-size:30px;font-weight:800;color:#4f7ef8;text-align:center;min-height:36px;">?</div>
+    <button class="btn ba" style="margin-top:6px;" onclick="rollDice('${id}')">Würfeln!</button>`;
+}
+
+function buildTxtTb(id) {
+  return `<div class="txt-tb">
+    <button onclick="txtSz('${id}',-2)">A−</button>
+    <span id="${id}-tsz" style="font-size:11px;color:#8892b0;font-weight:800;min-width:22px;text-align:center;">18</span>
+    <button onclick="txtSz('${id}',+2)">A+</button>
+    <div style="width:1px;height:18px;background:#dde3ff;"></div>
+    <button onclick="txtClr('${id}','#ef4444')" style="color:#ef4444;font-size:14px;border:none;background:none;cursor:pointer;padding:2px 4px;">●</button>
+    <button onclick="txtClr('${id}','#22c55e')" style="color:#22c55e;font-size:14px;border:none;background:none;cursor:pointer;padding:2px 4px;">●</button>
+    <button onclick="txtClr('${id}','#4f7ef8')" style="color:#4f7ef8;font-size:14px;border:none;background:none;cursor:pointer;padding:2px 4px;">●</button>
+    <button onclick="txtClr('${id}','#1e2a4a')" style="color:#1e2a4a;font-size:14px;border:none;background:none;cursor:pointer;padding:2px 4px;">●</button>
+    <button onclick="txtClr('${id}','#f59e0b')" style="color:#f59e0b;font-size:14px;border:none;background:none;cursor:pointer;padding:2px 4px;">●</button>
+    <div style="width:1px;height:18px;background:#dde3ff;"></div>
+    <button onclick="document.getElementById('${id}-ta').value=''" style="color:#ef4444;font-size:10px;">✕ Leeren</button>
+  </div>`;
+}
+
+// ═══════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════
+const DAYS=['Sonntag','Montag','Dienstag','Mittwoch','Donnerstag','Freitag','Samstag'];
+const MON=['Jan','Feb','Mär','Apr','Mai','Jun','Jul','Aug','Sep','Okt','Nov','Dez'];
+
+function initPanel(type, id) {
+  const s = panels[id].state;
+  if (type==='clock') {
+    const tick=()=>{
+      const n=new Date();
+      const te=document.getElementById(`${id}-t`), de=document.getElementById(`${id}-d`);
+      if(!te)return;
+      te.textContent=n.toTimeString().slice(0,8);
+      if(de)de.textContent=DAYS[n.getDay()]+', '+n.getDate()+'. '+MON[n.getMonth()]+' '+n.getFullYear();
+    };
+    tick(); s.interval=setInterval(tick,1000);
+  }
+  if (type==='timer')     s.interval=null,s.rem=0,s.total=0,s.running=false;
+  if (type==='stopwatch') s.interval=null,s.elapsed=0,s.running=false,s.t0=0;
+  if (type==='noise')     s.stream=null,s.actx=null,s.analyser=null,s.running=false,s.animId=null;
+  if (type==='traffic')   s.active='R',s.tlInterval=null,s.cfg={phase:'Arbeitsphase',lG:'Kinder arbeiten!',lY:'Langsam fertig',lR:'Stifte weg – Ruhe!',tG:5,tY:2};
+  if (type==='text')      s.size=18;
+}
+
+// ═══════════════════════════════════════
+// NOISE
+// ═══════════════════════════════════════
+// Lautstärke Schieberegler
+const NOISE_LEVELS = [
+  {max:15,  emoji:'😊', label:'Super ruhig!',      color:'#15803d', size:'100px'},
+  {max:30,  emoji:'🙂', label:'Ruhig',              color:'#16a34a', size:'100px'},
+  {max:45,  emoji:'😌', label:'Noch okay',          color:'#ca8a04', size:'105px'},
+  {max:60,  emoji:'😐', label:'Etwas laut',         color:'#d97706', size:'110px'},
+  {max:72,  emoji:'😕', label:'Zu laut!',           color:'#ea580c', size:'115px'},
+  {max:82,  emoji:'😟', label:'Bitte leiser!',      color:'#dc2626', size:'120px'},
+  {max:91,  emoji:'😤', label:'Viel zu laut!!',     color:'#b91c1c', size:'128px'},
+  {max:100, emoji:'😡', label:'STOPP – zu laut!!!', color:'#991b1b', size:'136px'},
+];
+
+function noiseSliderUpdate(id, val) {
+  val = parseInt(val);
+  const face = document.getElementById(`${id}-face`);
+  const lbl  = document.getElementById(`${id}-lbl`);
+  const slider = document.getElementById(`${id}-slider`);
+
+  // Find level
+  const L = NOISE_LEVELS.find(l => val <= l.max) || NOISE_LEVELS[NOISE_LEVELS.length-1];
+
+  if(face){ face.textContent = L.emoji; face.style.fontSize = L.size; }
+  if(lbl) { lbl.textContent  = L.label; lbl.style.color    = L.color; }
+
+  // Slider thumb color matches zone
+  const thumbCol = val<30?'#22c55e':val<55?'#f59e0b':val<75?'#f97316':'#ef4444';
+  if(slider) slider.style.setProperty('--thumb-col', thumbCol);
+
+  // Update quick-pick emoji opacity
+  const snaps=[0,25,50,75,100];
+  snaps.forEach((s,i)=>{
+    const el=document.getElementById(`${id}-face`).parentElement.querySelector(`div:nth-of-type(${i+1})`);
+  });
+}
+
+function noiseSliderSet(id, val) {
+  const slider = document.getElementById(`${id}-slider`);
+  if(slider){ slider.value = val; noiseSliderUpdate(id, val); }
+}
+
+// Keep micToggle as stub (not used anymore for noise widget)
+function micToggle(id){}
+function micStop(id){}
+function micLoop(id){}
+
+// ═══════════════════════════════════════
+// TRAFFIC LIGHT
+// ═══════════════════════════════════════
+const TL_ON={R:'background:#ef4444;box-shadow:0 0 24px #ef4444,0 0 48px rgba(239,68,68,.4);',Y:'background:#f59e0b;box-shadow:0 0 24px #f59e0b,0 0 48px rgba(245,158,11,.4);',G:'background:#22c55e;box-shadow:0 0 24px #22c55e,0 0 48px rgba(34,197,94,.4);'};
+const TL_OFF={R:'background:#3a1010;',Y:'background:#3a2e10;',G:'background:#0f3a10;'};
+const TL_IC={R:'🔴',Y:'🟡',G:'🟢'};
+const BASE='width:56px;height:56px;border-radius:50%;cursor:pointer;transition:all .35s;border:3px solid rgba(255,255,255,.06);';
+let currentTLid=null;
+
+function tlSet(id,c){
+  const s=panels[id]?.state;if(!s)return;
+  s.active=c;
+  ['R','Y','G'].forEach(x=>{const el=document.getElementById(`${id}-${x}`);if(el)el.style.cssText=BASE+(x===c?TL_ON[x]:TL_OFF[x]);});
+  const ll=document.getElementById(`${id}-ll`);
+  if(ll)ll.textContent=TL_IC[c]+' '+(s.cfg['l'+c]||'');
+}
+function tlOpenModal(id){currentTLid=id;const s=panels[id]?.state?.cfg||{};document.getElementById('m-phase').value=s.phase||'Arbeitsphase';document.getElementById('m-lG').value=s.lG||'';document.getElementById('m-lY').value=s.lY||'';document.getElementById('m-lR').value=s.lR||'';document.getElementById('m-tG').value=s.tG||5;document.getElementById('m-tY').value=s.tY||2;document.getElementById('modal').classList.add('open');}
+function closeModal(){document.getElementById('modal').classList.remove('open');}
+function tlSaveStart(){
+  const id=currentTLid;if(!id)return;
+  const s=panels[id]?.state;if(!s)return;
+  s.cfg={phase:document.getElementById('m-phase').value||'Phase',lG:document.getElementById('m-lG').value,lY:document.getElementById('m-lY').value,lR:document.getElementById('m-lR').value,tG:parseFloat(document.getElementById('m-tG').value)||5,tY:parseFloat(document.getElementById('m-tY').value)||2};
+  closeModal();tlStartPhase(id,'G');
+}
+function tlStartPhase(id,phase){
+  const s=panels[id]?.state;if(!s)return;
+  if(s.tlInterval)clearInterval(s.tlInterval);
+  tlSet(id,phase);
+  const bar=document.getElementById(`${id}-tb`),status=document.getElementById(`${id}-ts`);
+  if(phase==='R'){if(bar){bar.style.width='100%';bar.style.background='#ef4444';}if(status)status.textContent='🔴 Stopp';playRedSound();toast('🔴 '+s.cfg.lR);return;}
+  const dur=(phase==='G'?s.cfg.tG:s.cfg.tY)*60;
+  s.rem=dur;s.phaseTotal=dur;
+  const tick=()=>{if(s.rem<=0){clearInterval(s.tlInterval);if(phase==='G')tlStartPhase(id,'Y');else tlStartPhase(id,'R');return;}s.rem--;const pct=s.phaseTotal>0?(s.rem/s.phaseTotal)*100:0;if(bar){bar.style.width=pct+'%';bar.style.background=phase==='G'?'#22c55e':'#f59e0b';}const m=Math.floor(s.rem/60),sec=s.rem%60;if(status)status.textContent=(phase==='G'?'🟢':'🟡')+' noch '+p2(m)+':'+p2(sec);};
+  tick();s.tlInterval=setInterval(tick,1000);
+  if(phase==='Y') playYellowSound();
+  if(phase==='R') playRedSound();
+  toast((phase==='G'?'🟢 ':'🟡 ')+(phase==='G'?s.cfg.lG:s.cfg.lY));
+}
+function tlStop(id){const s=panels[id]?.state;if(!s)return;if(s.tlInterval)clearInterval(s.tlInterval);tlSet(id,'R');const bar=document.getElementById(`${id}-tb`);if(bar)bar.style.width='0%';const st=document.getElementById(`${id}-ts`);if(st)st.textContent='Gestoppt';toast('⏹ Gestoppt');}
+
+// ═══════════════════════════════════════
+// TIMER
+// ═══════════════════════════════════════
+function timerToggle(id){
+  const s=panels[id]?.state,btn=document.getElementById(`${id}-tb2`);if(!s)return;
+  if(s.running){clearInterval(s.interval);s.running=false;if(btn){btn.textContent='▶ Weiter';btn.className='btn by';}return;}
+  if(s.rem===0){const m=parseInt(document.getElementById(`${id}-m`).value)||0;const sec=parseInt(document.getElementById(`${id}-s`).value)||0;s.total=m*60+sec;s.rem=s.total;}
+  if(s.rem<=0)return;s.running=true;if(btn){btn.textContent='⏸ Pause';btn.className='btn by';}
+  s.interval=setInterval(()=>{s.rem--;timerDraw(id);if(s.rem<=0){clearInterval(s.interval);s.running=false;if(btn){btn.textContent='▶ Start';btn.className='btn bg';}playAlarm();toast('⏰ Zeit ist um!');}},1000);
+}
+function timerReset(id){const s=panels[id]?.state,btn=document.getElementById(`${id}-tb2`);if(!s)return;clearInterval(s.interval);s.running=false;s.rem=0;if(btn){btn.textContent='▶ Start';btn.className='btn bg';}const d=document.getElementById(`${id}-d`);if(d){d.textContent='00:00';d.style.color='#1e2a4a';}const rg=document.getElementById(`${id}-rg`);if(rg){rg.style.strokeDashoffset='0';rg.style.stroke='#4f7ef8';}}
+function timerDraw(id){const s=panels[id]?.state,d=document.getElementById(`${id}-d`),rg=document.getElementById(`${id}-rg`);if(!s||!d)return;const m=Math.floor(s.rem/60),sec=s.rem%60;d.textContent=p2(m)+':'+p2(sec);const pct=s.total>0?s.rem/s.total:1;if(rg){rg.style.strokeDashoffset=327*(1-pct);rg.style.stroke=pct>0.5?'#4f7ef8':pct>0.2?'#f59e0b':'#ef4444';}d.style.color=s.rem<=10?'#ef4444':s.rem<=30?'#b45309':'#1e2a4a';}
+function playAlarm(){
+  try{
+    const c=new AudioContext();
+    // Jubel-Melodie: aufsteigende fröhliche Noten
+    const notes=[
+      {f:523,t:0,dur:.12},    // C5
+      {f:659,t:.13,dur:.12},  // E5
+      {f:784,t:.26,dur:.12},  // G5
+      {f:1047,t:.39,dur:.25}, // C6 – hoch!
+      {f:784,t:.65,dur:.1},   // G5
+      {f:1047,t:.76,dur:.4},  // C6 lang
+    ];
+    notes.forEach(n=>{
+      const o=c.createOscillator(),g=c.createGain();
+      o.connect(g);g.connect(c.destination);
+      o.type='sine';
+      o.frequency.value=n.f;
+      const t=c.currentTime+n.t;
+      g.gain.setValueAtTime(0,t);
+      g.gain.linearRampToValueAtTime(0.4,t+0.02);
+      g.gain.exponentialRampToValueAtTime(0.001,t+n.dur);
+      o.start(t);o.stop(t+n.dur+0.05);
+    });
+    // Kleines Rauschen/Perkussion für mehr Jubel-Feeling
+    const buf=c.createBuffer(1,c.sampleRate*0.1,c.sampleRate);
+    const data=buf.getChannelData(0);
+    for(let i=0;i<data.length;i++) data[i]=(Math.random()*2-1)*0.15;
+    [0,.13,.26,.39].forEach(t=>{
+      const src=c.createBufferSource(),g=c.createGain();
+      src.buffer=buf;src.connect(g);g.connect(c.destination);
+      g.gain.setValueAtTime(0.3,c.currentTime+t);
+      g.gain.exponentialRampToValueAtTime(0.001,c.currentTime+t+0.08);
+      src.start(c.currentTime+t);
+    });
+  }catch(e){}
+}
+
+// ═══════════════════════════════════════
+// STOPWATCH
+// ═══════════════════════════════════════
+function swToggle(id){const s=panels[id]?.state,btn=document.getElementById(`${id}-swb`);if(!s)return;if(s.running){clearInterval(s.interval);s.running=false;if(btn){btn.textContent='▶ Weiter';btn.className='btn by';}}else{s.t0=Date.now()-s.elapsed;s.running=true;if(btn){btn.textContent='⏸ Pause';btn.className='btn by';}s.interval=setInterval(()=>{s.elapsed=Date.now()-s.t0;const h=Math.floor(s.elapsed/3600000),m=Math.floor((s.elapsed%3600000)/60000),sec=Math.floor((s.elapsed%60000)/1000);const el=document.getElementById(`${id}-sw`);if(el)el.textContent=p2(h)+':'+p2(m)+':'+p2(sec);},100);}}
+function swReset(id){const s=panels[id]?.state,btn=document.getElementById(`${id}-swb`);if(!s)return;clearInterval(s.interval);s.running=false;s.elapsed=0;const el=document.getElementById(`${id}-sw`);if(el)el.textContent='00:00:00';if(btn){btn.textContent='▶ Start';btn.className='btn bg';}}
+
+// ═══════════════════════════════════════
+// NAMES / SYMBOLS / TEXT / DICE
+// ═══════════════════════════════════════
+function pickName(id){const ta=document.getElementById(`${id}-nl`),r=document.getElementById(`${id}-r`);if(!ta||!r)return;const names=ta.value.split('\n').map(n=>n.trim()).filter(Boolean);if(!names.length){toast('❌ Bitte Namen eingeben!');return;}r.style.opacity='0';r.style.transform='scale(0.2)';r.style.transition='none';setTimeout(()=>{r.textContent=names[Math.floor(Math.random()*names.length)];r.style.transition='all .4s cubic-bezier(.34,1.56,.64,1)';r.style.opacity='1';r.style.transform='scale(1)';},100);}
+function symSet(id,idx){
+  for(let i=0;i<6;i++){const b=document.getElementById(`${id}-sy${i}`);if(!b)continue;b.classList.toggle('on',i===idx);}
+  if(idx===5) playClap(); // 👏 Klatschen – 3x
+}
+function playClap(){
+  try{
+    const ctx=new AudioContext();
+    // 3 Klatscher mit kurzem Abstand
+    [0, 0.35, 0.70].forEach(t=>{
+      const buf=ctx.createBuffer(1,ctx.sampleRate*0.12,ctx.sampleRate);
+      const data=buf.getChannelData(0);
+      for(let i=0;i<data.length;i++) data[i]=(Math.random()*2-1)*Math.exp(-i/(ctx.sampleRate*0.04));
+      const src=ctx.createBufferSource();
+      const gain=ctx.createGain();
+      const filter=ctx.createBiquadFilter();
+      filter.type='bandpass';filter.frequency.value=1200;filter.Q.value=0.8;
+      src.buffer=buf;src.connect(filter);filter.connect(gain);gain.connect(ctx.destination);
+      gain.gain.setValueAtTime(1.5,ctx.currentTime+t);
+      gain.gain.exponentialRampToValueAtTime(0.001,ctx.currentTime+t+0.1);
+      src.start(ctx.currentTime+t);
+    });
+  }catch(e){}
+}
+function txtSz(id,d){const s=panels[id]?.state;if(!s)return;s.size=Math.max(10,Math.min(80,s.size+d));const ta=document.getElementById(`${id}-ta`),sz=document.getElementById(`${id}-tsz`);if(ta)ta.style.fontSize=s.size+'px';if(sz)sz.textContent=s.size;}
+function txtClr(id,col){const ta=document.getElementById(`${id}-ta`);if(ta)ta.style.color=col;}
+const FACES=['⚀','⚁','⚂','⚃','⚄','⚅'];
+function rollDice(id){const df=document.getElementById(`${id}-df`),dr=document.getElementById(`${id}-dr`);if(!df||!dr)return;df.style.transition='transform .35s';df.style.transform='rotate(720deg) scale(0.3)';const n=Math.floor(Math.random()*6);setTimeout(()=>{df.textContent=FACES[n];dr.textContent=n+1;df.style.transform='rotate(0) scale(1)';},350);}
+
+
+// ═══════════════════════════════════════
+// AMPEL-GERÄUSCHE
+// ═══════════════════════════════════════
+function playYellowSound() {
+  try {
+    const ctx = new AudioContext();
+    // "Ding-Ding-Ding" – drei klare Glockentöne, gut hörbar
+    [0, 0.25, 0.5].forEach((t, i) => {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.connect(gain); gain.connect(ctx.destination);
+      osc.type = 'sine';
+      osc.frequency.value = 880; // hoher klarer Ton
+      const st = ctx.currentTime + t;
+      gain.gain.setValueAtTime(0, st);
+      gain.gain.linearRampToValueAtTime(0.5, st + 0.02);
+      gain.gain.exponentialRampToValueAtTime(0.001, st + 0.22);
+      osc.start(st); osc.stop(st + 0.25);
+    });
+  } catch(e) {}
+}
+
+function playRedSound() {
+  try {
+    const ctx = new AudioContext();
+    // Langer tiefer Buzzer + absteigende Töne = ALARM-Gefühl
+    // Tief-hoch-tief Muster, sehr auffällig
+    const pattern = [
+      {f:220, t:0,    dur:0.15, vol:0.4},
+      {f:440, t:0.17, dur:0.15, vol:0.45},
+      {f:220, t:0.34, dur:0.15, vol:0.4},
+      {f:440, t:0.51, dur:0.15, vol:0.45},
+      {f:165, t:0.68, dur:0.35, vol:0.5}, // langer tiefer Abschluss
+    ];
+    pattern.forEach(n => {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.connect(gain); gain.connect(ctx.destination);
+      osc.type = 'sawtooth';
+      osc.frequency.value = n.f;
+      const t = ctx.currentTime + n.t;
+      gain.gain.setValueAtTime(0, t);
+      gain.gain.linearRampToValueAtTime(n.vol, t + 0.01);
+      gain.gain.exponentialRampToValueAtTime(0.001, t + n.dur);
+      osc.start(t); osc.stop(t + n.dur + 0.05);
+    });
+  } catch(e) {}
+}
+// ═══════════════════════════════════════
+// BACKGROUND / TOAST / HELPERS
+// ═══════════════════════════════════════
+function setBg(dot,col){document.body.style.background=col;document.getElementById('board').style.background=col;document.querySelectorAll('.bgdot').forEach(d=>d.classList.remove('on'));dot.classList.add('on');}
+function toast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('on');clearTimeout(t._t);t._t=setTimeout(()=>t.classList.remove('on'),2800);}
+function p2(n){return String(n).padStart(2,'0');}
+
+// ═══════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════
+window.addEventListener('load',()=>{
+  updateBoard();
+  // Standard-Widgets öffnen
+  setTimeout(()=>{
+    openPanel('traffic');
+    openPanel('timer');
+    openPanel('noise');
+    openPanel('clock');
+    // Positionen anpassen
+    const ids=Object.keys(panels);
+    const W=innerWidth, H=innerHeight-TB_H;
+    const positions=[
+      {l:10,     t:10},
+      {l:220,    t:10},
+      {l:Math.min(460, W-360), t:10},
+      {l:Math.max(0,  W-260), t:10}
+    ];
+    ids.forEach((id,i)=>{
+      const el=document.getElementById(id);
+      if(!el||!positions[i])return;
+      el.style.left=Math.max(0,Math.min(positions[i].l, W-el.offsetWidth))+'px';
+      el.style.top=Math.max(0,Math.min(positions[i].t, H-el.offsetHeight))+'px';
+    });
+  },200);
+});
+window.addEventListener('resize', updateBoard);
+</script>
+</body>
+</html>
