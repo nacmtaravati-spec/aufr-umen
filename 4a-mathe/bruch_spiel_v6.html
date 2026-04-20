@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Böhlitz-Ehrenberg Klasse 4a Bruch-Spiel</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@700;900&display=swap');
+*{box-sizing:border-box;margin:0;padding:0;}
+body{
+  background:#1a1a2e;
+  font-family:'Nunito',sans-serif;
+  min-height:100vh;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  padding:16px;
+  background-image:radial-gradient(ellipse at 15% 15%,#4ecdc425 0%,transparent 50%),
+                   radial-gradient(ellipse at 85% 85%,#ff6b3520 0%,transparent 50%);
+}
+h1{font-family:'Fredoka One',cursive;font-size:clamp(1.2rem,3vw,1.9rem);color:#fff;text-align:center;margin-bottom:2px;letter-spacing:1px;}
+.school{color:#aaa;font-size:0.85rem;text-align:center;margin-bottom:14px;letter-spacing:1px;}
+
+/* PROGRESS BAR */
+.progress-wrap{width:100%;max-width:700px;margin-bottom:18px;}
+.progress-label{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;}
+.progress-label span{font-family:'Fredoka One',cursive;font-size:1rem;color:#ccc;}
+.progress-label .goal{color:#ffe66d;font-size:1.1rem;}
+.progress-track{height:18px;background:rgba(255,255,255,0.08);border-radius:20px;overflow:hidden;border:1px solid rgba(255,255,255,0.1);}
+.progress-fill{height:100%;background:linear-gradient(90deg,#4ecdc4,#2ecc71);border-radius:20px;transition:width 0.5s cubic-bezier(0.34,1.56,0.64,1);width:0%;}
+.progress-stars{display:flex;gap:4px;margin-top:6px;justify-content:center;}
+.pstar{font-size:1.3rem;opacity:0.25;transition:opacity 0.4s,transform 0.4s;}
+.pstar.earned{opacity:1;transform:scale(1.2);}
+
+/* TOP BAR */
+.top-bar{display:flex;gap:10px;align-items:center;margin-bottom:18px;flex-wrap:wrap;justify-content:center;}
+.score-pill{background:rgba(255,255,255,0.08);border-radius:40px;padding:7px 16px;font-family:'Fredoka One',cursive;font-size:1rem;color:#fff;display:flex;align-items:center;gap:7px;}
+.score-pill .num{font-size:1.4rem;}
+.score-pill.correct .num{color:#2ecc71;}
+.score-pill.wrong .num{color:#ff6b35;}
+.speed-group{display:flex;background:rgba(255,255,255,0.06);border-radius:30px;overflow:hidden;border:1px solid rgba(255,255,255,0.1);}
+.speed-btn{font-family:'Fredoka One',cursive;font-size:0.85rem;padding:7px 14px;border:none;background:transparent;color:#999;cursor:pointer;transition:all 0.2s;}
+.speed-btn.active{background:#ff6b35;color:white;}
+
+/* CARDS */
+.game-wrap{display:flex;align-items:center;justify-content:center;gap:18px;margin-bottom:26px;width:100%;max-width:780px;}
+.card{flex:1;max-width:320px;min-height:290px;border-radius:26px;background:#0f1f3d;border:3px solid rgba(255,255,255,0.1);box-shadow:0 12px 48px rgba(0,0,0,0.5);display:flex;flex-direction:column;overflow:hidden;transition:border-color 0.3s,box-shadow 0.3s,transform 0.3s;}
+.card.match-glow{border-color:#2ecc71;box-shadow:0 0 0 5px #2ecc7166,0 12px 48px rgba(0,0,0,0.5);transform:scale(1.04);}
+.card.mismatch-glow{border-color:#e74c3c;box-shadow:0 0 0 5px #e74c3c66,0 12px 48px rgba(0,0,0,0.5);}
+.card-header{padding:12px;font-family:'Fredoka One',cursive;font-size:1.05rem;text-align:center;background:rgba(255,255,255,0.04);border-bottom:1px solid rgba(255,255,255,0.07);color:#bbb;flex-shrink:0;}
+.card-body{flex:1;display:flex;align-items:center;justify-content:center;padding:20px;}
+.card-content{display:flex;align-items:center;justify-content:center;width:100%;transition:opacity 0.15s;}
+.card-content.hidden{opacity:0;}
+.fraction{display:flex;flex-direction:column;align-items:center;font-family:'Fredoka One',cursive;color:#fff;line-height:1;gap:3px;}
+.frac-num{font-size:clamp(3rem,8vw,4.5rem);}
+.frac-line{width:65px;height:5px;background:#fff;border-radius:3px;}
+.frac-den{font-size:clamp(3rem,8vw,4.5rem);}
+.frac-name{font-family:'Fredoka One',cursive;font-size:clamp(1.4rem,3.5vw,2rem);color:#aad4ff;margin-top:12px;letter-spacing:0.5px;}
+.card-content svg{width:185px;height:185px;}
+.middle{display:flex;flex-direction:column;align-items:center;justify-content:center;flex-shrink:0;}
+.eq-sign{font-family:'Fredoka One',cursive;font-size:2.5rem;color:#444;transition:color 0.3s,transform 0.3s;}
+.eq-sign.match{color:#2ecc71;transform:scale(1.5);}
+.eq-sign.mismatch{color:#e74c3c;transform:scale(1.3);}
+
+/* STOP */
+.stop-btn{font-family:'Fredoka One',cursive;font-size:2rem;padding:18px 90px;border-radius:80px;border:none;background:linear-gradient(135deg,#ff4444,#ff6b35);color:white;cursor:pointer;box-shadow:0 6px 32px rgba(255,80,50,0.5);transition:transform 0.1s,box-shadow 0.1s;letter-spacing:2px;}
+.stop-btn:hover{transform:translateY(-3px);box-shadow:0 12px 40px rgba(255,80,50,0.6);}
+.stop-btn:active{transform:scale(0.95);}
+
+/* OVERLAYS */
+.overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.78);z-index:200;align-items:center;justify-content:center;}
+.overlay.show{display:flex;}
+.result-card{background:#0f1f3d;border-radius:30px;padding:36px 44px;text-align:center;box-shadow:0 24px 80px rgba(0,0,0,0.7);max-width:460px;width:92%;animation:popIn 0.35s cubic-bezier(0.34,1.56,0.64,1);border:2px solid rgba(255,255,255,0.08);}
+@keyframes popIn{from{transform:scale(0.4) translateY(40px);opacity:0}to{transform:scale(1) translateY(0);opacity:1}}
+.result-big{font-size:4.5rem;margin-bottom:8px;}
+.result-title{font-family:'Fredoka One',cursive;font-size:2.2rem;margin-bottom:8px;}
+.result-title.ok{color:#2ecc71;}
+.result-title.err{color:#ff6b35;}
+.result-sub{color:#aaa;font-size:1rem;margin-bottom:24px;line-height:1.5;}
+.weiter-btn{font-family:'Fredoka One',cursive;font-size:1.6rem;padding:14px 46px;border-radius:60px;border:none;background:linear-gradient(135deg,#4ecdc4,#2ecc71);color:white;cursor:pointer;box-shadow:0 6px 20px rgba(78,205,196,0.4);transition:transform 0.1s;}
+.weiter-btn:hover{transform:translateY(-2px);}
+
+/* WIN SCREEN */
+.win-card{background:linear-gradient(135deg,#0f1f3d,#1a3a6e);border-radius:30px;padding:44px 48px;text-align:center;box-shadow:0 24px 80px rgba(0,0,0,0.8);max-width:500px;width:92%;animation:popIn 0.5s cubic-bezier(0.34,1.56,0.64,1);border:3px solid #ffe66d;}
+.win-trophy{font-size:6rem;margin-bottom:8px;animation:bounce 0.8s ease-in-out infinite alternate;}
+@keyframes bounce{from{transform:scale(1)}to{transform:scale(1.12)}}
+.win-title{font-family:'Fredoka One',cursive;font-size:2.8rem;color:#ffe66d;margin-bottom:8px;text-shadow:0 0 20px #ffe66d88;}
+.win-sub{color:#aaa;font-size:1.1rem;margin-bottom:8px;line-height:1.5;}
+.win-score{font-family:'Fredoka One',cursive;font-size:1.5rem;color:#4ecdc4;margin-bottom:28px;}
+.play-again-btn{font-family:'Fredoka One',cursive;font-size:1.8rem;padding:16px 50px;border-radius:60px;border:none;background:linear-gradient(135deg,#ffe66d,#ff8c35);color:#1a1a2e;cursor:pointer;box-shadow:0 6px 24px rgba(255,230,109,0.4);transition:transform 0.1s;}
+.play-again-btn:hover{transform:translateY(-2px);}
+
+/* STARS */
+.stars-wrap{position:fixed;inset:0;pointer-events:none;z-index:300;display:none;}
+.stars-wrap.show{display:block;}
+.star{position:absolute;animation:flyUp 1.4s ease-out forwards;}
+@keyframes flyUp{0%{opacity:1;transform:translateY(0) rotate(0deg) scale(1)}100%{opacity:0;transform:translateY(-280px) rotate(200deg) scale(0.3)}}
+</style>
+</head>
+<body>
+
+<h1>🍕 Böhlitz-Ehrenberg Klasse 4a</h1>
+<p class="school">✦ Bruch-Spiel ✦</p>
+
+<!-- PROGRESS -->
+<div class="progress-wrap">
+  <div class="progress-label">
+    <span id="progressText">0 von 10 richtigen Paaren</span>
+    <span class="goal">🎯 Ziel: 10 Paare!</span>
+  </div>
+  <div class="progress-track">
+    <div class="progress-fill" id="progressFill"></div>
+  </div>
+  <div class="progress-stars" id="progressStars"></div>
+</div>
+
+<div class="top-bar">
+  <div class="score-pill correct">✓ Richtig <span class="num" id="sCorrect">0</span></div>
+  <div class="score-pill wrong">✗ Falsch <span class="num" id="sWrong">0</span></div>
+  <div class="speed-group">
+    <button class="speed-btn"        onclick="setSpeed('slow',this)">🐢 Langsam</button>
+    <button class="speed-btn active" onclick="setSpeed('normal',this)">🐇 Normal</button>
+    <button class="speed-btn"        onclick="setSpeed('fast',this)">🚀 Schnell</button>
+  </div>
+</div>
+
+<div class="game-wrap">
+  <div class="card" id="cardWord">
+    <div class="card-header">📝 Bruch</div>
+    <div class="card-body">
+      <div class="card-content" id="contentWord"><div id="fracDisplay"></div></div>
+    </div>
+  </div>
+  <div class="middle"><div class="eq-sign" id="eqSign">=?</div></div>
+  <div class="card" id="cardImg">
+    <div class="card-header">🖼️ Kreis</div>
+    <div class="card-body">
+      <div class="card-content" id="contentImg"><div id="imgSvg"></div></div>
+    </div>
+  </div>
+</div>
+
+<button class="stop-btn" onclick="handleStop()">⛔ STOPP!</button>
+
+<!-- Wrong overlay -->
+<div class="overlay" id="overlay">
+  <div class="result-card">
+    <div class="result-big" id="rEmoji"></div>
+    <div class="result-title" id="rTitle"></div>
+    <div class="result-sub" id="rSub"></div>
+    <button class="weiter-btn" onclick="continueGame()">▶ Weiter!</button>
+  </div>
+</div>
+
+<!-- Win overlay -->
+<div class="overlay" id="winOverlay">
+  <div class="win-card">
+    <div class="win-trophy">🏆</div>
+    <div class="win-title">Geschafft!</div>
+    <div class="win-sub">Ihr habt alle 10 Bruch-Paare gefunden!<br>Klasse 4a — ihr seid Bruch-Profis! 🎉</div>
+    <div class="win-score" id="winScore"></div>
+    <button class="play-again-btn" onclick="resetGame()">🔄 Nochmal spielen!</button>
+  </div>
+</div>
+
+<div class="stars-wrap" id="stars"></div>
+
+<script>
+const CORRECT = [
+  { id:"1/2", num:1, den:2, name:"ein Halb",        svg:`<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><path d="M50,50 L50.00000,13.00000 A37,37 0 0,1 50.00000,87.00000 Z" fill="#e74c3c" stroke="none"/><path d="M50,50 L50.00000,87.00000 A37,37 0 0,1 50.00000,13.00000 Z" fill="#e8e8e8" stroke="none"/><line x1="50" y1="50" x2="50.00000" y2="13.00000" stroke="#111" stroke-width="2.2" stroke-linecap="butt"/><line x1="50" y1="50" x2="50.00000" y2="87.00000" stroke="#111" stroke-width="2.2" stroke-linecap="butt"/><circle cx="50" cy="50" r="37" fill="none" stroke="#111" stroke-width="4"/></svg>` },
+  { id:"1/4", num:1, den:4, name:"ein Viertel",      svg:`<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><path d="M50,50 L50.00000,13.00000 A37,37 0 0,1 87.00000,50.00000 Z" fill="#e67e22" stroke="none"/><path d="M50,50 L87.00000,50.00000 A37,37 0 0,1 50.00000,87.00000 Z" fill="#e8e8e8" stroke="none"/><path d="M50,50 L50.00000,87.00000 A37,37 0 0,1 13.00000,50.00000 Z" fill="#e8e8e8" stroke="none"/><path d="M50,50 L13.00000,50.00000 A37,37 0 0,1 50.00000,13.00000 Z" fill="#e8e8e8" stroke="none"/><line x1="50" y1="50" x2="50.00000" y2="13.00000" stroke="#111" stroke-width="2.2" stroke-linecap="butt"/><line x1="50" y1="50" x2="87.00000" y2="50.00000" stroke="#111" stroke-width="2.2" stroke-linecap="butt"/><line x1="50" y1="50" x2="50.00000" y2="87.00000" stroke="#111" stroke-width="2.2" stroke-linecap="butt"/><line x1="50" y1="50" x2="13.00000" y2="50.00000" stroke="#111" stroke-width="2.2" stroke-linecap="butt"/><circle cx="50" cy="50" r="37" fill="none" stroke="#111" stroke-width="4"/></svg>` },
+  { id:"2/4", num:2, den:4, name:"zwei Viertel",     svg:`<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><path d="M50,50 L50.00000,13.00000 A37,37 0 0,1 87.00000,50.00000 Z" fill="#e67e22" stroke="none"/><path d="M50,50 L87.00000,50.00000 A37,37 0 0,1 50.00000,87.00000 Z" fill="#e67e22" stroke="none"/><path d="M50,50 L50.00000,87.00000 A37,37 0 0,1 13.00000,50.00000 Z" fill="#e8e8e8" stroke="none"/><path d="M50,50 L13.00000,50.00000 A37,37 0 0,1 50.00000,13.00000 Z" fill="#e8e8e8" stroke="none"/><line x1="50" y1="50" x2="50.00000" y2="13.00000" stroke="#111" stroke-width="2.2" stroke-linecap="butt"/><line x1="50" y1="50" x2="87.00000" y2="50.00000" stroke="#111" stroke-width="2.2" stroke-linecap="butt"/><line x1="50" y1="50" x2="50.00000" y2="87.00000" stroke="#111" stroke-width="2.2" stroke-linecap="butt"/><line x1="50" y1="50" x2="13.00000" y2="50.00000" stroke="#111" stroke-width="2.2" stroke-linecap="butt"/><circle cx="50" cy="50" r="37" fill="none" stroke="#111" stroke-width="4"/></svg>` },
+  { id:"3/4", num:3, den:4, name:"drei Viertel",     svg:`<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><path d="M50,50 L50.00000,13.00000 A37,37 0 0,1 87.00000,50.00000 Z" fill="#e67e22" stroke="none"/><path d="M50,50 L87.00000,50.00000 A37,37 0 0,1 50.00000,87.00000 Z" fill="#e67e22" stroke="none"/><path d="M50,50 L50.00000,87.00000 A37,37 0 0,1 13.00000,50.00000 Z" fill="#e67e22" stroke="none"/><path d="M50,50 L13.00000,50.00000 A37,37 0 0,1 50.00000,13.00000 Z" fill="#e8e8e8" stroke="none"/><line x1="50" y1="50" x2="50.00000" y2="13.00000" stroke="#111" stroke-width="2.2" stroke-linecap="butt"/><line x1="50" y1="50" x2="87.00000" y2="50.00000" stroke="#111" stroke-width="2.2" stroke-linecap="butt"/><line x1="50" y1="50" x2="50.00000" y2="87.00000" stroke="#111" stroke-width="2.2" stroke-linecap="butt"/><line x1="50" y1="50" x2="13.00000" y2="50.00000" stroke="#111" stroke-width="2.2" stroke-linecap="butt"/><circle cx="50" cy="50" r="37" fill="none" stroke="#111" stroke-width="4"/></svg>` },
+  { id:"1/8", num:1, den:8, name:"ein Achtel",       svg:`<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><path d="M50,50 L50.00000,13.00000 A37,37 0 0,1 76.16295,23.83705 Z" fill="#2980b9" stroke="none"/><path d="M50,50 L76.16295,23.83705 A37,37 0 0,1 87.00000,50.00000 Z" fill="#e8e8e8" stroke="none"/><path d="M50,50 L87.00000,50.00000 A37,37 0 0,1 76.16295,76.16295 Z" fill="#e8e8e8" stroke="none"/><path d="M50,50 L76.16295,76.16295 A37,37 0 0,1 50.00000,87.00000 Z" fill="#e8e8e8" stroke="none"/><path d="M50,50 L50.00000,87.00000 A37,37 0 0,1 23.83705,76.16295 Z" fill="#e8e8e8" stroke="none"/><path d="M50,50 L23.83705,76.16295 A37,37 0 0,1 13.00000,50.00000 Z" fill="#e8e8e8" stroke="none"/><path d="M50,50 L13.00000,50.00000 A37,37 0 0,1 23.83705,23.83705 Z" fill="#e8e8e8" stroke="none"/><path d="M50,50 L23.83705,23.83705 A37,37 0 0,1 50.00000,13.00000 Z" fill="#e8e8e8" stroke="none"/><line x1="50" y1="50" x2="50.00000" y2="13.00000" stroke="#111" stroke-width="2.2" stroke-linecap="butt"/><line x1="50" y1="50" x2="76.16295" y2="23.83705" stroke="#111" stroke-width="2.2" stroke-linecap="butt"/><line x1="50" y1="50" x2="87.00000" y2="50.00000" stroke="#111" stroke-width="2.2" stroke-linecap="butt"/><line x1="50" y1="50" x2="76.16295" y2="76.16295" stroke="#111" stroke-width="2.2" stroke-linecap="butt"/><line x1="50" y1="50" x2="50.00000" y2="87.00000" stroke="#111" stroke-width="2.2" stroke-linecap="butt"/><line x1="50" y1="50" x2="23.83705" y2="76.16295" stroke="#111" stroke-width="2.2" stroke-linecap="butt"/><line x1="50" y1="50" x2="13.00000" y2="50.00000" stroke="#111" stroke-width="2.2" stroke-linecap="butt"/><line x1="50" y1="50" x2="23.83705" y2="23.83705" stroke="#111" stroke-width="2.2" stroke-linecap="butt"/><circle cx="50" cy="50" r="37" fill="none" stroke="#111" stroke-width="4"/></svg>` },
+  { id:"2/8", num:2, den:8, name:"zwei Achtel",      svg:`<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><path d="M50,50 L50.00000,13.00000 A37,37 0 0,1 76.16295,23.83705 Z" fill="#2980b9" stroke="none"/><path d="M50,50 L76.16295,23.83705 A37,37 0 0,1 87.00000,50.00000 Z" fill="#2980b9" stroke="none"/><path d="M50,50 L87.00000,50.00000 A37,37 0 0,1 76.16295,76.16295 Z" fill="#e8e8e8" stroke="none"/><path d="M50,50 L76.16295,76.16295 A37,37 0 0,1 50.00000,87.00000 Z" fill="#e8e8e8" stroke="none"/><path d="M50,50 L50.00000,87.00000 A37,37 0 0,1 23.83705,76.16295 Z" fill="#e8e8e8" stroke="none"/><path d="M50,50 L23.83705,76.16295 A37,37 0 0,1 13.00000,50.00000 Z" fill="#e8e8e8" stroke="none"/><path d="M50,50 L13.00000,50.00000 A37,37 0 0,1 23.83705,23.83705 Z" fill="#e8e8e8" stroke="none"/><path d="M50,50 L23.83705,23.83705 A37,37 0 0,1 50.00000,13.00000 Z" fill="#e8e8e8" stroke="none"/><line x1="50" y1="50" x2="50.00000" y2="13.00000" stroke="#111" stroke-width="2.2" stroke-linecap="butt"/><line x1="50" y1="50" x2="76.16295" y2="23.83705" stroke="#111" stroke-width="2.2" stroke-linecap="butt"/><line x1="50" y1="50" x2="87.00000" y2="50.00000" stroke="#111" stroke-width="2.2" stroke-linecap="butt"/><line x1="50" y1="50" x2="76.16295" y2="76.16295" stroke="#111" stroke-width="2.2" stroke-linecap="butt"/><line x1="50" y1="50" x2="50.00000" y2="87.00000" stroke="#111" stroke-width="2.2" stroke-linecap="butt"/><line x1="50" y1="50" x2="23.83705" y2="76.16295" stroke="#111" stroke-width="2.2" stroke-linecap="butt"/><line x1="50" y1="50" x2="13.00000" y2="50.00000" stroke="#111" stroke-width="2.2" stroke-linecap="butt"/><line x1="50" y1="50" x2="23.83705" y2="23.83705" stroke="#111" stroke-width="2.2" stroke-linecap="butt"/><circle cx="50" cy="50" r="37" fill="none" stroke="#111" stroke-width="4"/></svg>` },
+  { id:"3/8", num:3, den:8, name:"drei Achtel",      svg:`<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><path d="M50,50 L50.00000,13.00000 A37,37 0 0,1 76.16295,23.83705 Z" fill="#2980b9" stroke="none"/><path d="M50,50 L76.16295,23.83705 A37,37 0 0,1 87.00000,50.00000 Z" fill="#2980b9" stroke="none"/><path d="M50,50 L87.00000,50.00000 A37,37 0 0,1 76.16295,76.16295 Z" fill="#2980b9" stroke="none"/><path d="M50,50 L76.16295,76.16295 A37,37 0 0,1 50.00000,87.00000 Z" fill="#e8e8e8" stroke="none"/><path d="M50,50 L50.00000,87.00000 A37,37 0 0,1 23.83705,76.16295 Z" fill="#e8e8e8" stroke="none"/><path d="M50,50 L23.83705,76.16295 A37,37 0 0,1 13.00000,50.00000 Z" fill="#e8e8e8" stroke="none"/><path d="M50,50 L13.00000,50.00000 A37,37 0 0,1 23.83705,23.83705 Z" fill="#e8e8e8" stroke="none"/><path d="M50,50 L23.83705,23.83705 A37,37 0 0,1 50.00000,13.00000 Z" fill="#e8e8e8" stroke="none"/><line x1="50" y1="50" x2="50.00000" y2="13.00000" stroke="#111" stroke-width="2.2" stroke-linecap="butt"/><line x1="50" y1="50" x2="76.16295" y2="23.83705" stroke="#111" stroke-width="2.2" stroke-linecap="butt"/><line x1="50" y1="50" x2="87.00000" y2="50.00000" stroke="#111" stroke-width="2.2" stroke-linecap="butt"/><line x1="50" y1="50" x2="76.16295" y2="76.16295" stroke="#111" stroke-width="2.2" stroke-linecap="butt"/><line x1="50" y1="50" x2="50.00000" y2="87.00000" stroke="#111" stroke-width="2.2" stroke-linecap="butt"/><line x1="50" y1="50" x2="23.83705" y2="76.16295" stroke="#111" stroke-width="2.2" stroke-linecap="butt"/><line x1="50" y1="50" x2="13.00000" y2="50.00000" stroke="#111" stroke-width="2.2" stroke-linecap="butt"/><line x1="50" y1="50" x2="23.83705" y2="23.83705" stroke="#111" stroke-width="2.2" stroke-linecap="butt"/><circle cx="50" cy="50" r="37" fill="none" stroke="#111" stroke-width="4"/></svg>` },
+  { id:"4/8", num:4, den:8, name:"vier Achtel",      svg:`<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><path d="M50,50 L50.00000,13.00000 A37,37 0 0,1 76.16295,23.83705 Z" fill="#2980b9" stroke="none"/><path d="M50,50 L76.16295,23.83705 A37,37 0 0,1 87.00000,50.00000 Z" fill="#2980b9" stroke="none"/><path d="M50,50 L87.00000,50.00000 A37,37 0 0,1 76.16295,76.16295 Z" fill="#2980b9" stroke="none"/><path d="M50,50 L76.16295,76.16295 A37,37 0 0,1 50.00000,87.00000 Z" fill="#2980b9" stroke="none"/><path d="M50,50 L50.00000,87.00000 A37,37 0 0,1 23.83705,76.16295 Z" fill="#e8e8e8" stroke="none"/><path d="M50,50 L23.83705,76.16295 A37,37 0 0,1 13.00000,50.00000 Z" fill="#e8e8e8" stroke="none"/><path d="M50,50 L13.00000,50.00000 A37,37 0 0,1 23.83705,23.83705 Z" fill="#e8e8e8" stroke="none"/><path d="M50,50 L23.83705,23.83705 A37,37 0 0,1 50.00000,13.00000 Z" fill="#e8e8e8" stroke="none"/><line x1="50" y1="50" x2="50.00000" y2="13.00000" stroke="#111" stroke-width="2.2" stroke-linecap="butt"/><line x1="50" y1="50" x2="76.16295" y2="23.83705" stroke="#111" stroke-width="2.2" stroke-linecap="butt"/><line x1="50" y1="50" x2="87.00000" y2="50.00000" stroke="#111" stroke-width="2.2" stroke-linecap="butt"/><line x1="50" y1="50" x2="76.16295" y2="76.16295" stroke="#111" stroke-width="2.2" stroke-linecap="butt"/><line x1="50" y1="50" x2="50.00000" y2="87.00000" stroke="#111" stroke-width="2.2" stroke-linecap="butt"/><line x1="50" y1="50" x2="23.83705" y2="76.16295" stroke="#111" stroke-width="2.2" stroke-linecap="butt"/><line x1="50" y1="50" x2="13.00000" y2="50.00000" stroke="#111" stroke-width="2.2" stroke-linecap="butt"/><line x1="50" y1="50" x2="23.83705" y2="23.83705" stroke="#111" stroke-width="2.2" stroke-linecap="butt"/><circle cx="50" cy="50" r="37" fill="none" stroke="#111" stroke-width="4"/></svg>` },
+  { id:"5/8", num:5, den:8, name:"fünf Achtel", svg:`<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><path d="M50,50 L50.00000,13.00000 A37,37 0 0,1 76.16295,23.83705 Z" fill="#2980b9" stroke="none"/><path d="M50,50 L76.16295,23.83705 A37,37 0 0,1 87.00000,50.00000 Z" fill="#2980b9" stroke="none"/><path d="M50,50 L87.00000,50.00000 A37,37 0 0,1 76.16295,76.16295 Z" fill="#2980b9" stroke="none"/><path d="M50,50 L76.16295,76.16295 A37,37 0 0,1 50.00000,87.00000 Z" fill="#2980b9" stroke="none"/><path d="M50,50 L50.00000,87.00000 A37,37 0 0,1 23.83705,76.16295 Z" fill="#2980b9" stroke="none"/><path d="M50,50 L23.83705,76.16295 A37,37 0 0,1 13.00000,50.00000 Z" fill="#e8e8e8" stroke="none"/><path d="M50,50 L13.00000,50.00000 A37,37 0 0,1 23.83705,23.83705 Z" fill="#e8e8e8" stroke="none"/><path d="M50,50 L23.83705,23.83705 A37,37 0 0,1 50.00000,13.00000 Z" fill="#e8e8e8" stroke="none"/><line x1="50" y1="50" x2="50.00000" y2="13.00000" stroke="#111" stroke-width="2.2" stroke-linecap="butt"/><line x1="50" y1="50" x2="76.16295" y2="23.83705" stroke="#111" stroke-width="2.2" stroke-linecap="butt"/><line x1="50" y1="50" x2="87.00000" y2="50.00000" stroke="#111" stroke-width="2.2" stroke-linecap="butt"/><line x1="50" y1="50" x2="76.16295" y2="76.16295" stroke="#111" stroke-width="2.2" stroke-linecap="butt"/><line x1="50" y1="50" x2="50.00000" y2="87.00000" stroke="#111" stroke-width="2.2" stroke-linecap="butt"/><line x1="50" y1="50" x2="23.83705" y2="76.16295" stroke="#111" stroke-width="2.2" stroke-linecap="butt"/><line x1="50" y1="50" x2="13.00000" y2="50.00000" stroke="#111" stroke-width="2.2" stroke-linecap="butt"/><line x1="50" y1="50" x2="23.83705" y2="23.83705" stroke="#111" stroke-width="2.2" stroke-linecap="butt"/><circle cx="50" cy="50" r="37" fill="none" stroke="#111" stroke-width="4"/></svg>` },
+  { id:"6/8", num:6, den:8, name:"sechs Achtel",     svg:`<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><path d="M50,50 L50.00000,13.00000 A37,37 0 0,1 76.16295,23.83705 Z" fill="#2980b9" stroke="none"/><path d="M50,50 L76.16295,23.83705 A37,37 0 0,1 87.00000,50.00000 Z" fill="#2980b9" stroke="none"/><path d="M50,50 L87.00000,50.00000 A37,37 0 0,1 76.16295,76.16295 Z" fill="#2980b9" stroke="none"/><path d="M50,50 L76.16295,76.16295 A37,37 0 0,1 50.00000,87.00000 Z" fill="#2980b9" stroke="none"/><path d="M50,50 L50.00000,87.00000 A37,37 0 0,1 23.83705,76.16295 Z" fill="#2980b9" stroke="none"/><path d="M50,50 L23.83705,76.16295 A37,37 0 0,1 13.00000,50.00000 Z" fill="#2980b9" stroke="none"/><path d="M50,50 L13.00000,50.00000 A37,37 0 0,1 23.83705,23.83705 Z" fill="#e8e8e8" stroke="none"/><path d="M50,50 L23.83705,23.83705 A37,37 0 0,1 50.00000,13.00000 Z" fill="#e8e8e8" stroke="none"/><line x1="50" y1="50" x2="50.00000" y2="13.00000" stroke="#111" stroke-width="2.2" stroke-linecap="butt"/><line x1="50" y1="50" x2="76.16295" y2="23.83705" stroke="#111" stroke-width="2.2" stroke-linecap="butt"/><line x1="50" y1="50" x2="87.00000" y2="50.00000" stroke="#111" stroke-width="2.2" stroke-linecap="butt"/><line x1="50" y1="50" x2="76.16295" y2="76.16295" stroke="#111" stroke-width="2.2" stroke-linecap="butt"/><line x1="50" y1="50" x2="50.00000" y2="87.00000" stroke="#111" stroke-width="2.2" stroke-linecap="butt"/><line x1="50" y1="50" x2="23.83705" y2="76.16295" stroke="#111" stroke-width="2.2" stroke-linecap="butt"/><line x1="50" y1="50" x2="13.00000" y2="50.00000" stroke="#111" stroke-width="2.2" stroke-linecap="butt"/><line x1="50" y1="50" x2="23.83705" y2="23.83705" stroke="#111" stroke-width="2.2" stroke-linecap="butt"/><circle cx="50" cy="50" r="37" fill="none" stroke="#111" stroke-width="4"/></svg>` },
+  { id:"7/8", num:7, den:8, name:"sieben Achtel",    svg:`<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><path d="M50,50 L50.00000,13.00000 A37,37 0 0,1 76.16295,23.83705 Z" fill="#2980b9" stroke="none"/><path d="M50,50 L76.16295,23.83705 A37,37 0 0,1 87.00000,50.00000 Z" fill="#2980b9" stroke="none"/><path d="M50,50 L87.00000,50.00000 A37,37 0 0,1 76.16295,76.16295 Z" fill="#2980b9" stroke="none"/><path d="M50,50 L76.16295,76.16295 A37,37 0 0,1 50.00000,87.00000 Z" fill="#2980b9" stroke="none"/><path d="M50,50 L50.00000,87.00000 A37,37 0 0,1 23.83705,76.16295 Z" fill="#2980b9" stroke="none"/><path d="M50,50 L23.83705,76.16295 A37,37 0 0,1 13.00000,50.00000 Z" fill="#2980b9" stroke="none"/><path d="M50,50 L13.00000,50.00000 A37,37 0 0,1 23.83705,23.83705 Z" fill="#2980b9" stroke="none"/><path d="M50,50 L23.83705,23.83705 A37,37 0 0,1 50.00000,13.00000 Z" fill="#e8e8e8" stroke="none"/><line x1="50" y1="50" x2="50.00000" y2="13.00000" stroke="#111" stroke-width="2.2" stroke-linecap="butt"/><line x1="50" y1="50" x2="76.16295" y2="23.83705" stroke="#111" stroke-width="2.2" stroke-linecap="butt"/><line x1="50" y1="50" x2="87.00000" y2="50.00000" stroke="#111" stroke-width="2.2" stroke-linecap="butt"/><line x1="50" y1="50" x2="76.16295" y2="76.16295" stroke="#111" stroke-width="2.2" stroke-linecap="butt"/><line x1="50" y1="50" x2="50.00000" y2="87.00000" stroke="#111" stroke-width="2.2" stroke-linecap="butt"/><line x1="50" y1="50" x2="23.83705" y2="76.16295" stroke="#111" stroke-width="2.2" stroke-linecap="butt"/><line x1="50" y1="50" x2="13.00000" y2="50.00000" stroke="#111" stroke-width="2.2" stroke-linecap="butt"/><line x1="50" y1="50" x2="23.83705" y2="23.83705" stroke="#111" stroke-width="2.2" stroke-linecap="butt"/><circle cx="50" cy="50" r="37" fill="none" stroke="#111" stroke-width="4"/></svg>` },
+];
+
+const WRONG_IMAGES = [];
+
+// Image pool = only the correct fraction images
+const IMAGES = CORRECT.map(f => ({ id: f.id, svg: f.svg }));
+
+// ── STATE ─────────────────────────────────────────────────────
+const GOAL = 10;
+const MAX_BEFORE_MATCH = 4;
+let interval = 3000;
+let stepsSinceMatch = 0;
+let currentWord = null, currentImg = null;
+let stopped = false, wordTimer = null;
+let scoreOk = 0, scoreErr = 0;
+
+function shuffle(arr){const a=[...arr];for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
+
+const wDeck={val:shuffle([...CORRECT])}, iDeck={val:shuffle([...IMAGES])};
+const wCur={val:0}, iCur={val:0};
+
+function nextWord(){if(wCur.val>=wDeck.val.length){wDeck.val=shuffle([...CORRECT]);wCur.val=0;}return wDeck.val[wCur.val++];}
+function nextImg(){if(iCur.val>=iDeck.val.length){iDeck.val=shuffle([...IMAGES]);iCur.val=0;}return iDeck.val[iCur.val++];}
+
+function pickNext(){
+  stepsSinceMatch++;
+  if(stepsSinceMatch>=MAX_BEFORE_MATCH){
+    const pick=CORRECT[Math.floor(Math.random()*CORRECT.length)];
+    currentWord=pick;
+    currentImg=IMAGES.find(i=>i.id===pick.id);
+    stepsSinceMatch=0;
+  } else {
+    currentWord=nextWord();
+    currentImg=nextImg();
+    if(Math.random()<0.10) currentImg=IMAGES.find(i=>i.id===currentWord.id);
+  }
+}
+
+// ── PROGRESS ─────────────────────────────────────────────────
+function buildStars(){
+  const c=document.getElementById('progressStars');
+  c.innerHTML='';
+  for(let i=0;i<GOAL;i++){
+    const s=document.createElement('span');
+    s.className='pstar';s.textContent='⭐';s.id=`ps${i}`;
+    c.appendChild(s);
+  }
+}
+
+function updateProgress(){
+  const pct=(scoreOk/GOAL)*100;
+  document.getElementById('progressFill').style.width=Math.min(pct,100)+'%';
+  document.getElementById('progressText').textContent=`${scoreOk} von ${GOAL} richtigen Paaren`;
+  for(let i=0;i<GOAL;i++){
+    const s=document.getElementById(`ps${i}`);
+    if(s) s.className='pstar'+(i<scoreOk?' earned':'');
+  }
+}
+
+// ── RENDER ────────────────────────────────────────────────────
+function showWord(d){
+  const el=document.getElementById('contentWord');
+  el.classList.add('hidden');
+  setTimeout(()=>{
+    document.getElementById('fracDisplay').innerHTML=
+      `<div class="fraction"><span class="frac-num">${d.num}</span><div class="frac-line"></div><span class="frac-den">${d.den}</span><span class="frac-name">${d.name}</span></div>`;
+    el.classList.remove('hidden');
+  },150);
+}
+function showImg(d){
+  const el=document.getElementById('contentImg');
+  el.classList.add('hidden');
+  setTimeout(()=>{document.getElementById('imgSvg').innerHTML=d.svg;el.classList.remove('hidden');},150);
+}
+
+// ── CYCLING ──────────────────────────────────────────────────
+function startCycling(){
+  stopped=false;clearFeedback();
+  pickNext();showWord(currentWord);showImg(currentImg);
+  wordTimer=setInterval(()=>{pickNext();showWord(currentWord);showImg(currentImg);},interval);
+}
+function stopCycling(){clearInterval(wordTimer);}
+function setSpeed(s,btn){
+  document.querySelectorAll('.speed-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  if(s==='slow')interval=5000;if(s==='normal')interval=3000;if(s==='fast')interval=1500;
+  if(!stopped){stopCycling();startCycling();}
+}
+
+// ── STOP ─────────────────────────────────────────────────────
+function handleStop(){
+  if(stopped)return;
+  stopped=true;stopCycling();
+  const ok=currentWord.id===currentImg.id;
+  const eq=document.getElementById('eqSign');
+  const cW=document.getElementById('cardWord'),cI=document.getElementById('cardImg');
+  if(ok){
+    eq.textContent='=';eq.className='eq-sign match';
+    cW.classList.add('match-glow');cI.classList.add('match-glow');
+    scoreOk++;document.getElementById('sCorrect').textContent=scoreOk;
+    updateProgress();
+    spawnStars();
+    if(scoreOk>=GOAL){setTimeout(showWin,1200);}
+    else{setTimeout(()=>continueGame(),1800);}
+  } else {
+    eq.textContent='≠';eq.className='eq-sign mismatch';
+    cW.classList.add('mismatch-glow');cI.classList.add('mismatch-glow');
+    scoreErr++;document.getElementById('sWrong').textContent=scoreErr;
+    setTimeout(()=>showResult(),400);
+  }
+}
+
+function clearFeedback(){
+  document.getElementById('eqSign').textContent='=?';
+  document.getElementById('eqSign').className='eq-sign';
+  document.getElementById('cardWord').className='card';
+  document.getElementById('cardImg').className='card';
+}
+
+function showResult(){
+  document.getElementById('rEmoji').textContent='🙈';
+  document.getElementById('rTitle').textContent='Noch nicht!';
+  document.getElementById('rTitle').className='result-title err';
+  document.getElementById('rSub').textContent=`Das Bild zeigt nicht ${currentWord.num}/${currentWord.den}. Schau genau hin!`;
+  document.getElementById('overlay').classList.add('show');
+}
+
+function continueGame(){
+  document.getElementById('overlay').classList.remove('show');
+  startCycling();
+}
+
+function showWin(){
+  stopCycling();
+  document.getElementById('winScore').textContent=
+    `${scoreOk} richtig, ${scoreErr} falsch — Fantastisch!`;
+  document.getElementById('winOverlay').classList.add('show');
+  spawnStars();setTimeout(spawnStars,600);setTimeout(spawnStars,1200);
+}
+
+function resetGame(){
+  scoreOk=0;scoreErr=0;stepsSinceMatch=0;
+  document.getElementById('sCorrect').textContent='0';
+  document.getElementById('sWrong').textContent='0';
+  document.getElementById('winOverlay').classList.remove('show');
+  updateProgress();
+  startCycling();
+}
+
+// ── STARS ────────────────────────────────────────────────────
+function spawnStars(){
+  const c=document.getElementById('stars');
+  c.classList.add('show');c.innerHTML='';
+  ['⭐','🌟','✨','🎊','🎉','💫','🍕'].forEach(em=>{
+    for(let k=0;k<4;k++){
+      const s=document.createElement('div');s.className='star';
+      s.style.left=(Math.random()*95)+'vw';s.style.top=(20+Math.random()*70)+'vh';
+      s.style.fontSize=(1.4+Math.random()*2)+'rem';s.style.animationDelay=(Math.random()*0.8)+'s';
+      s.textContent=em;c.appendChild(s);
+    }
+  });
+  setTimeout(()=>c.classList.remove('show'),2200);
+}
+
+document.addEventListener('keydown',e=>{
+  if(e.code==='Space'||e.key==='Enter'){
+    e.preventDefault();
+    if(!stopped)handleStop();
+    else if(document.getElementById('overlay').classList.contains('show'))continueGame();
+  }
+});
+
+buildStars();
+updateProgress();
+startCycling();
+</script>
+</body>
+</html>
